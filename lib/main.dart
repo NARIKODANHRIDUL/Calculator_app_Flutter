@@ -44,7 +44,6 @@ class _HomeState extends State<Home> {
   double eqsize = 48;
 
   var btheme = Colors.lightGreen;
-  double shrink = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -325,9 +324,15 @@ class _HomeState extends State<Home> {
       },
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Text(
-          tag,
-          style: GoogleFonts.roboto(fontSize: 25, fontWeight: FontWeight.w400),
+        child: Padding(
+          padding: tag == '^'
+              ? EdgeInsets.only(top: wid * 0.20 / 10)
+              : EdgeInsets.all(0),
+          child: Text(
+            tag,
+            style:
+                GoogleFonts.roboto(fontSize: 25, fontWeight: FontWeight.w400),
+          ),
         ),
       ),
       style: ElevatedButton.styleFrom(
@@ -346,10 +351,9 @@ class _HomeState extends State<Home> {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
             fixedSize: tag == "="
-                ? Size(wid * (0.21 * 2 + ((1 - 0.21 * 4) / 5)),
-                    wid * 0.21 * shrink)
+                ? Size(wid * (0.21 * 2 + ((1 - 0.21 * 4) / 5)), wid * 0.21)
                 //width = width of 2 small button + gap between them
-                : Size(wid * 0.21, wid * 0.21 * shrink),
+                : Size(wid * 0.21, wid * 0.21),
             onPrimary: tag == "="
                 ? Colors.grey.shade800
                 : (isOperator(tag) ? Colors.grey.shade900 : btheme.shade300),
@@ -441,33 +445,17 @@ class _HomeState extends State<Home> {
                       userInput == '-') &&
                   (tag == '+' || tag == '÷' || tag == '×')) {
                 Fluttertoast.cancel();
-                Fluttertoast.showToast(
-                    msg: "Invalid Input",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.grey.shade900,
-                    textColor: btheme.shade300,
-                    fontSize: 19.0);
-              }
-              // else if (userInput != '' &&
-              //     isOperator(userInput[userInput.length - 1])) {
-              //   if (userInput[userInput.length - 1] == tag)
-              //     Fluttertoast.showToast(
-              //         msg: "Invalid Input",
-              //         toastLength: Toast.LENGTH_SHORT,
-              //         gravity: ToastGravity.BOTTOM,
-              //         timeInSecForIosWeb: 1,
-              //         backgroundColor: Colors.grey.shade900,
-              //         textColor: btheme.shade300,
-              //         fontSize: 19.0);
-              //   else {
-              //     userInput = userInput.substring(0, userInput.length - 1);
-              //     userInput += tag;
-              //   }
-              // }
-              else
+                toastmsg("Invalid Input");
+              } else if ((isOperator(tag) &&
+                      isnum(userInput[userInput.length - 1]) == false) &&
+                  !userInput.endsWith('!') &&
+                  !userInput.endsWith(')') &&
+                  !userInput.endsWith('e')) {
+                Fluttertoast.cancel();
+                toastmsg("Invalid Input");
+              } else
                 userInput += tag;
+              /////////////////////////
               if (answer != '') {
                 eqcolor = Colors.grey.shade900;
                 resultcolor = Colors.grey.shade800;
@@ -502,12 +490,20 @@ class _HomeState extends State<Home> {
                                 size: wid * 0.08,
                               )
                             : FittedBox(
-                                child: Text(
-                                  tag,
-                                  style: GoogleFonts.roboto(
-                                      fontSize:
-                                          tag == '=' || tag == '÷' ? 40 : 30,
-                                      fontWeight: FontWeight.w400),
+                                child: Padding(
+                                  padding: tag == '.'
+                                      ? EdgeInsets.only(bottom: wid * 0.21 / 5)
+                                      : EdgeInsets.all(0),
+                                  child: Text(
+                                    tag,
+                                    style: GoogleFonts.roboto(
+                                        fontSize: tag == '=' ||
+                                                tag == '÷' ||
+                                                tag == '.'
+                                            ? 42
+                                            : 32,
+                                        fontWeight: FontWeight.w400),
+                                  ),
                                 ),
                               ))))));
   }
@@ -731,5 +727,16 @@ class _HomeState extends State<Home> {
     } else {
       return false;
     }
+  }
+
+  Future<bool?> toastmsg(String h) {
+    return Fluttertoast.showToast(
+        msg: h,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey.shade900,
+        textColor: btheme.shade300,
+        fontSize: 19.0);
   }
 }
