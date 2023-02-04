@@ -33,7 +33,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  String userInput = '';
+  late TextEditingController controller;
+  // String controller.text= '';
   String answer = '';
   int openbracket = 0;
   int closingbracket = 0;
@@ -46,6 +47,18 @@ class _HomeState extends State<Home> {
   var btheme = Colors.lightGreen;
 
   @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // final hei = MediaQuery.of(context).size.height; //screen height
     final wid = MediaQuery.of(context).size.width; //screen width
@@ -53,6 +66,10 @@ class _HomeState extends State<Home> {
       height: 10,
       thickness: 0,
     );
+
+    setState(() {
+      // controller.text = controller.text;
+    }); //to continuesly update controller.text with text in textfield
 
     var verticalDivider = VerticalDivider(
       width: (1 - 0.21 * 4) / 5 * wid,
@@ -167,12 +184,19 @@ class _HomeState extends State<Home> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Text(
-                            userInput,
-                            style: TextStyle(fontSize: eqsize, color: eqcolor),
-                            textAlign: TextAlign.right,
+                        TextField(
+                          textAlign: TextAlign.right,
+                          style: TextStyle(fontSize: eqsize, color: eqcolor),
+                          cursorColor: btheme,
+                          textDirection: TextDirection.ltr,
+
+                          //mistake
+                          cursorRadius: Radius.circular(12),
+                          keyboardType: TextInputType.none,
+                          controller: controller,
+                          decoration: InputDecoration.collapsed(
+                            hintText: '',
+                            // counterText: '',
                           ),
                         ),
                         SingleChildScrollView(
@@ -303,16 +327,17 @@ class _HomeState extends State<Home> {
     return ElevatedButton(
       onPressed: () {
         setState(() {
-          if ((userInput == '' || userInput.endsWith("^")) && tag == "^")
+          if ((controller.text == '' || controller.text.endsWith("^")) &&
+              tag == "^")
             null;
-          else if (userInput == '' && tag == "!")
+          else if (controller.text == '' && tag == "!")
             null;
-          else if (userInput != '' &&
-              isnum(userInput[userInput.length - 1]) &&
+          else if (controller.text != '' &&
+              isnum(controller.text[controller.text.length - 1]) &&
               tag == "√") {
-            userInput += '*√';
+            controller.text += '*√';
           } else
-            userInput += tag;
+            controller.text += tag;
 
           if (answer != '') {
             eqcolor = Colors.grey.shade900;
@@ -368,7 +393,7 @@ class _HomeState extends State<Home> {
         onLongPress: () {
           if (tag == 'D') {
             setState(() {
-              userInput = '';
+              controller.text = '';
               answer = '';
             });
           }
@@ -377,7 +402,7 @@ class _HomeState extends State<Home> {
           Fluttertoast.cancel();
           if (tag == 'AC') {
             setState(() {
-              userInput = '';
+              controller.text = '';
               answer = '';
 
               eqcolor = Colors.grey.shade900;
@@ -387,10 +412,12 @@ class _HomeState extends State<Home> {
             });
           } else if (tag == 'D') {
             setState(() {
-              if (userInput.endsWith("log"))
-                userInput = userInput.substring(0, userInput.length - 3);
+              if (controller.text.endsWith("log"))
+                controller.text =
+                    controller.text.substring(0, controller.text.length - 3);
               else
-                userInput = userInput.substring(0, userInput.length - 1);
+                controller.text =
+                    controller.text.substring(0, controller.text.length - 1);
 
               eqcolor = Colors.grey.shade900;
               resultcolor = Colors.grey.shade800;
@@ -398,7 +425,7 @@ class _HomeState extends State<Home> {
               resultsize = 38;
             });
           } else if (tag == '=') {
-            if (userInput != '')
+            if (controller.text != '')
               calculate();
             else {
               Fluttertoast.cancel();
@@ -418,43 +445,45 @@ class _HomeState extends State<Home> {
             resultsize = 48;
           } else if (tag == '( )') {
             setState(() {
-              openbracket = userInput.split("(").length - 1;
-              closingbracket = userInput.split(")").length - 1;
+              openbracket = controller.text.split("(").length - 1;
+              closingbracket = controller.text.split(")").length - 1;
 
               if (openbracket == closingbracket ||
-                  userInput.endsWith('+') ||
-                  userInput.endsWith("-") ||
-                  userInput.endsWith("×") ||
-                  userInput.endsWith("÷") ||
-                  userInput.endsWith("(")) {
-                (userInput != '' && isnum(userInput[userInput.length - 1]))
+                  controller.text.endsWith('+') ||
+                  controller.text.endsWith("-") ||
+                  controller.text.endsWith("×") ||
+                  controller.text.endsWith("÷") ||
+                  controller.text.endsWith("(")) {
+                (controller.text != '' &&
+                        isnum(controller.text[controller.text.length - 1]))
                     // ^| else index error comes when we press () button when input is empty
-                    ? userInput += '×('
-                    : (userInput.endsWith('e'))
-                        ? userInput += '^1('
-                        : userInput += '(';
+                    ? controller.text += '×('
+                    : (controller.text.endsWith('e'))
+                        ? controller.text += '^1('
+                        : controller.text += '(';
               } else if (openbracket > closingbracket &&
-                  !userInput.endsWith('(')) {
-                userInput += ')';
+                  !controller.text.endsWith('(')) {
+                controller.text += ')';
               }
             });
           } else {
             setState(() {
-              if ((userInput.endsWith('(') ||
-                      userInput == '' ||
-                      userInput == '-') &&
+              if ((controller.text.endsWith('(') ||
+                      controller.text == '' ||
+                      controller.text == '-') &&
                   (tag == '+' || tag == '÷' || tag == '×')) {
                 Fluttertoast.cancel();
                 toastmsg("Invalid Input");
               } else if ((isOperator(tag) &&
-                      isnum(userInput[userInput.length - 1]) == false) &&
-                  !userInput.endsWith('!') &&
-                  !userInput.endsWith(')') &&
-                  !userInput.endsWith('e')) {
+                      isnum(controller.text[controller.text.length - 1]) ==
+                          false) &&
+                  !controller.text.endsWith('!') &&
+                  !controller.text.endsWith(')') &&
+                  !controller.text.endsWith('e')) {
                 Fluttertoast.cancel();
                 toastmsg("Invalid Input");
               } else
-                userInput += tag;
+                controller.text += tag;
               /////////////////////////
               if (answer != '') {
                 eqcolor = Colors.grey.shade900;
@@ -509,8 +538,8 @@ class _HomeState extends State<Home> {
   }
 
   void calculate() {
-    String userInputToCalculate = userInput;
-    print("-----------------------------\nGiven => $userInput");
+    String userInputToCalculate = controller.text;
+    print("-----------------------------\nGiven => $controller.text");
     if (isOperator(userInputToCalculate[userInputToCalculate.length - 1]) ||
         userInputToCalculate.endsWith('√') == true ||
         userInputToCalculate.endsWith('^') == true) {
@@ -577,7 +606,7 @@ class _HomeState extends State<Home> {
       });
     } catch (e) {
       setState(() {
-        answer = userInput == '' ? '0' : "Error";
+        answer = controller.text == '' ? '0' : "Error";
       });
     }
   }
