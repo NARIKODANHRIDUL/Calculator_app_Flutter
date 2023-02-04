@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
@@ -66,10 +67,6 @@ class _HomeState extends State<Home> {
       height: 10,
       thickness: 0,
     );
-
-    setState(() {
-      // controller.text = controller.text;
-    }); //to continuesly update controller.text with text in textfield
 
     var verticalDivider = VerticalDivider(
       width: (1 - 0.21 * 4) / 5 * wid,
@@ -139,7 +136,9 @@ class _HomeState extends State<Home> {
             onSelected: (value) async {
               // if value 1 show dialog
               if (value == 0) {
-                showTheme(wid, context);
+                // showTheme(wid, context);
+                int hi = controller.selection.baseOffset;
+                print("cursor => $hi");
                 // if value 2 show dialog
               } else if (value == 1) {
                 const url = 'https://github.com/NARIKODANHRIDUL/';
@@ -187,10 +186,8 @@ class _HomeState extends State<Home> {
                         TextField(
                           textAlign: TextAlign.right,
                           style: TextStyle(fontSize: eqsize, color: eqcolor),
-                          cursorColor: btheme,
+                          cursorColor: btheme.shade300,
                           textDirection: TextDirection.ltr,
-
-                          //mistake
                           cursorRadius: Radius.circular(12),
                           keyboardType: TextInputType.none,
                           controller: controller,
@@ -201,20 +198,28 @@ class _HomeState extends State<Home> {
                         ),
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: Text(
-                            answer,
-                            style: TextStyle(
-                              color: answer == "Error"
-                                  ? Color.fromARGB(255, 252, 114, 63)
-                                  : answer == "Infinity" ||
-                                          answer == "-Infinity"
-                                      ? Color.fromARGB(255, 252, 114, 63)
-                                      : answer == "Keep it real"
-                                          ? Color.fromARGB(255, 252, 114, 63)
-                                          : resultcolor,
-                              fontSize: resultsize,
+                          child: GestureDetector(
+                            onLongPress: () async {
+                              await Clipboard.setData(
+                                  ClipboardData(text: answer));
+                              Fluttertoast.cancel();
+                              toastmsg("$answer copied to Clipboard");
+                            },
+                            child: Text(
+                              answer,
+                              style: TextStyle(
+                                color: answer == "Error"
+                                    ? Color.fromARGB(255, 252, 114, 63)
+                                    : answer == "Infinity" ||
+                                            answer == "-Infinity"
+                                        ? Color.fromARGB(255, 252, 114, 63)
+                                        : answer == "Keep it real"
+                                            ? Color.fromARGB(255, 252, 114, 63)
+                                            : resultcolor,
+                                fontSize: resultsize,
+                              ),
+                              textAlign: TextAlign.right,
                             ),
-                            textAlign: TextAlign.right,
                           ),
                         ),
                       ],
@@ -412,13 +417,28 @@ class _HomeState extends State<Home> {
             });
           } else if (tag == 'D') {
             setState(() {
-              if (controller.text.endsWith("log"))
-                controller.text =
-                    controller.text.substring(0, controller.text.length - 3);
-              else
-                controller.text =
-                    controller.text.substring(0, controller.text.length - 1);
+              int cursor = controller.selection.baseOffset;
 
+              int len = controller.text.length;
+              print("cursor = $cursor  \n length = $len ");
+
+              if ((cursor == len || cursor == -1) && controller.text != '') {
+                if (controller.text.endsWith("log"))
+                  controller.text =
+                      controller.text.substring(0, controller.text.length - 3);
+                else
+                  controller.text =
+                      controller.text.substring(0, controller.text.length - 1);
+              } else if (controller.text != '' && controller.text != '') {
+                cursor = cursor == -1 ? controller.text.length : cursor;
+                print("Backspace => $cursor");
+                controller.text = controller.text
+                        .substring(0, controller.selection.baseOffset - 1) +
+                    controller.text.substring(controller.selection.baseOffset);
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: cursor - 1),
+                ); //to set cursor at its position
+              }
               eqcolor = Colors.grey.shade900;
               resultcolor = Colors.grey.shade800;
               eqsize = 48;
