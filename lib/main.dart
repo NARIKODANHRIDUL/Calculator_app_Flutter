@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -42,7 +40,7 @@ class _HomeState extends State<Home> {
 
   var resultcolor = Colors.grey.shade900;
   var eqcolor = Colors.grey.shade900;
-  double resultsize = 48;
+  double resultsize = 38;
   double eqsize = 48;
 
   var btheme = Colors.lightGreen;
@@ -132,13 +130,25 @@ class _HomeState extends State<Home> {
                     fontWeight: FontWeight.w700),
                 child: const Text("Rate Us"),
               ),
+              PopupMenuItem(
+                  value: 4,
+                  child: Container(
+                    width: 130,
+                    padding: EdgeInsets.all(0),
+                    child: ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                          btheme.shade300.withOpacity(0.5), BlendMode.color),
+                      child: Image(
+                        image: AssetImage("images/neriquest.png"),
+                      ),
+                    ),
+                  ))
             ],
             onSelected: (value) async {
               // if value 1 show dialog
               if (value == 0) {
-                // showTheme(wid, context);
-                int hi = controller.selection.baseOffset;
-                print("cursor => $hi");
+                showTheme(wid, context);
+
                 // if value 2 show dialog
               } else if (value == 1) {
                 const url = 'https://github.com/NARIKODANHRIDUL/';
@@ -160,6 +170,8 @@ class _HomeState extends State<Home> {
                 } else {
                   throw 'Could not launch $url';
                 }
+              } else if (value == 4) {
+                toastmsg("Created by NeriQuest");
               }
             },
           ),
@@ -340,9 +352,11 @@ class _HomeState extends State<Home> {
           else if (controller.text != '' &&
               isnum(controller.text[controller.text.length - 1]) &&
               tag == "√") {
-            controller.text += '*√';
+            typeit('*√');
+            // controller.text += '*√';
           } else
-            controller.text += tag;
+            typeit(tag);
+          // controller.text += tag;
 
           if (answer != '') {
             eqcolor = Colors.grey.shade900;
@@ -449,14 +463,7 @@ class _HomeState extends State<Home> {
               calculate();
             else {
               Fluttertoast.cancel();
-              Fluttertoast.showToast(
-                  msg: "Type Some expression and try",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  timeInSecForIosWeb: 1,
-                  backgroundColor: Colors.grey.shade900,
-                  textColor: btheme.shade300,
-                  fontSize: 19.0);
+              toastmsg("Type Some expression and try");
             }
 
             eqcolor = Colors.grey.shade800;
@@ -477,13 +484,14 @@ class _HomeState extends State<Home> {
                 (controller.text != '' &&
                         isnum(controller.text[controller.text.length - 1]))
                     // ^| else index error comes when we press () button when input is empty
-                    ? controller.text += '×('
+                    ? typeit('×(')
                     : (controller.text.endsWith('e'))
-                        ? controller.text += '^1('
-                        : controller.text += '(';
+                        ? typeit('^1(')
+                        : typeit('(');
               } else if (openbracket > closingbracket &&
                   !controller.text.endsWith('(')) {
-                controller.text += ')';
+                typeit(')');
+                // controller.text += ')';
               }
             });
           } else {
@@ -502,8 +510,10 @@ class _HomeState extends State<Home> {
                   !controller.text.endsWith('e')) {
                 Fluttertoast.cancel();
                 toastmsg("Invalid Input");
-              } else
-                controller.text += tag;
+              } else {
+                typeit(tag);
+                // controller.text += tag;
+              }
               /////////////////////////
               if (answer != '') {
                 eqcolor = Colors.grey.shade900;
@@ -605,20 +615,22 @@ class _HomeState extends State<Home> {
       // Evaluate expression:
       double eval = exp.evaluate(EvaluationType.REAL, cm);
       setState(() {
+        print("eval $eval");
         answer = eval.toStringAsFixed(eval.truncateToDouble() == eval
             ? 0
             : eval.toString().length - eval.toString().indexOf(".") - 1);
-        print("shooper $answer");
-        print("answer = $answer");
-        if (eval <= 0.000000000001 || eval >= 9999999999999)
-          answer = eval.toStringAsExponential(6);
-        else
-          answer = eval.toStringAsFixed(11);
 
-        if (answer.endsWith('.0000000000')) {
-          answer = answer.substring(0, answer.length - 11);
+        print("answer = $answer");
+        answer = eval.toString();
+        if (eval <= 0.000000000001 || eval >= 9999999999999) {
+          int index = answer.indexOf("e");
+          print("i = $index");
         }
 
+        // if (answer.endsWith('.00000000000')) {
+        //   answer = answer.substring(0, answer.length - 12);
+        // }
+        print("1 answer = $eval");
         //rempves all trailing zeroes after decimal
         answer = answer.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), '');
         print("final answer = $answer");
@@ -776,6 +788,18 @@ class _HomeState extends State<Home> {
     } else {
       return false;
     }
+  }
+
+  typeit(String str) {
+    int cursor = controller.selection.baseOffset;
+    int len = controller.text.length;
+    cursor = cursor == -1 ? len : cursor;
+    print("cursor = $cursor  \n length = $len ");
+    controller.text = controller.text.substring(0, cursor) +
+        str +
+        controller.text.substring(cursor);
+    controller.selection =
+        TextSelection.fromPosition(TextPosition(offset: cursor + 1));
   }
 
   Future<bool?> toastmsg(String h) {
