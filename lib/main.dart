@@ -145,34 +145,17 @@ class _HomeState extends State<Home> {
                   ))
             ],
             onSelected: (value) async {
-              // if value 1 show dialog
               if (value == 0) {
                 showTheme(wid, context);
-
-                // if value 2 show dialog
-              } else if (value == 1) {
-                const url = 'https://github.com/NARIKODANHRIDUL/';
-                if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url),
-                      mode: LaunchMode.externalApplication);
-                } else {
-                  throw 'Could not launch $url';
-                }
-              } else if (value == 2) {
+              } else if (value == 1)
+                openurl('https://github.com/NARIKODANHRIDUL/');
+              else if (value == 2)
                 Share.share(
                     "Check out Chess Timer App in Google PlayStore  https://play.google.com/store/apps/details?id=neriquest.chesstimer");
-              } else if (value == 3) {
-                const url =
-                    'https://play.google.com/store/apps/details?id=neriquest.chesstimer';
-                if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url),
-                      mode: LaunchMode.externalApplication);
-                } else {
-                  throw 'Could not launch $url';
-                }
-              } else if (value == 4) {
-                toastmsg("Created by NeriQuest");
-              }
+              else if (value == 3)
+                openurl(
+                    'https://play.google.com/store/apps/details?id=neriquest.chesstimer');
+              else if (value == 4) toastmsg("Created by NeriQuest");
             },
           ),
         ],
@@ -197,6 +180,7 @@ class _HomeState extends State<Home> {
                       children: [
                         TextField(
                           textAlign: TextAlign.right,
+                          autofocus: true,
                           style: TextStyle(fontSize: eqsize, color: eqcolor),
                           cursorColor: btheme.shade300,
                           textDirection: TextDirection.ltr,
@@ -799,7 +783,15 @@ class _HomeState extends State<Home> {
         str +
         controller.text.substring(cursor);
     controller.selection =
-        TextSelection.fromPosition(TextPosition(offset: cursor + 1));
+        TextSelection.fromPosition(TextPosition(offset: cursor + str.length));
+  }
+
+  openurl(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   Future<bool?> toastmsg(String h) {
