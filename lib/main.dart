@@ -35,15 +35,17 @@ class _HomeState extends State<Home> {
   late TextEditingController controller;
   // String controller.text= '';
   String answer = '';
-  int openbracket = 0;
-  int closingbracket = 0;
+  int openBracket = 0;
+  int closingBracket = 0;
+  String strBfrCursor = '';
+  int cursor = 0;
 
-  var resultcolor = Colors.grey.shade900;
-  var eqcolor = Colors.grey.shade900;
-  double resultsize = 38;
-  double eqsize = 48;
+  var resultColor = Colors.grey.shade900;
+  var eqColor = Colors.grey.shade900;
+  double resultSize = 38;
+  double eqSize = 48;
 
-  var btheme = Colors.lightGreen;
+  var bTheme = Colors.lightGreen;
 
   @override
   void initState() {
@@ -81,14 +83,14 @@ class _HomeState extends State<Home> {
         title: Text("",
             style: GoogleFonts.openSans(
                 fontSize: 25,
-                color: btheme.shade300,
+                color: bTheme.shade300,
                 fontWeight: FontWeight.bold)),
         actions: [
           PopupMenuButton(
             icon:
-                Icon(Icons.more_vert_rounded, color: btheme.shade300, size: 30),
+                Icon(Icons.more_vert_rounded, color: bTheme.shade300, size: 30),
             position: PopupMenuPosition.under,
-            color: btheme.shade200,
+            color: bTheme.shade200,
             elevation: 5,
             padding: EdgeInsets.all(10),
             shape: const RoundedRectangleBorder(
@@ -132,14 +134,21 @@ class _HomeState extends State<Home> {
               ),
               PopupMenuItem(
                   value: 4,
-                  child: Container(
-                    width: 130,
-                    padding: EdgeInsets.all(0),
-                    child: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                          btheme.shade300.withOpacity(0.5), BlendMode.color),
-                      child: Image(
-                        image: AssetImage("images/neriquest.png"),
+                  child: Transform.scale(
+                    scale: 1.2,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        width: 135,
+                        padding: EdgeInsets.all(0),
+                        child: ColorFiltered(
+                          colorFilter: ColorFilter.mode(
+                              bTheme.shade300.withOpacity(0.4),
+                              BlendMode.color),
+                          child: Image(
+                            image: AssetImage("images/neriquest.png"),
+                          ),
+                        ),
                       ),
                     ),
                   ))
@@ -181,8 +190,9 @@ class _HomeState extends State<Home> {
                         TextField(
                           textAlign: TextAlign.right,
                           autofocus: true,
-                          style: TextStyle(fontSize: eqsize, color: eqcolor),
-                          cursorColor: btheme.shade300,
+                          style: GoogleFonts.openSans(
+                              fontSize: eqSize, color: eqColor),
+                          cursorColor: bTheme.shade300,
                           textDirection: TextDirection.ltr,
                           cursorRadius: Radius.circular(12),
                           keyboardType: TextInputType.none,
@@ -198,7 +208,6 @@ class _HomeState extends State<Home> {
                             onLongPress: () async {
                               await Clipboard.setData(
                                   ClipboardData(text: answer));
-                              Fluttertoast.cancel();
                               toastMsg("$answer copied to Clipboard");
                             },
                             child: Text(
@@ -211,8 +220,8 @@ class _HomeState extends State<Home> {
                                         ? Color.fromARGB(255, 252, 114, 63)
                                         : answer == "Keep it real"
                                             ? Color.fromARGB(255, 252, 114, 63)
-                                            : resultcolor,
-                                fontSize: resultsize,
+                                            : resultColor,
+                                fontSize: resultSize,
                               ),
                               textAlign: TextAlign.right,
                             ),
@@ -252,13 +261,13 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    button("AC", wid),
+                    mainButton("AC", wid),
                     verticalDivider,
-                    button("( )", wid),
+                    mainButton("( )", wid),
                     verticalDivider,
-                    button("÷", wid),
+                    mainButton("÷", wid),
                     verticalDivider,
-                    button('×', wid),
+                    mainButton('×', wid),
                   ],
                 ),
                 divider,
@@ -266,13 +275,13 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    button("7", wid),
+                    mainButton("7", wid),
                     verticalDivider,
-                    button("8", wid),
+                    mainButton("8", wid),
                     verticalDivider,
-                    button("9", wid),
+                    mainButton("9", wid),
                     verticalDivider,
-                    button("-", wid),
+                    mainButton("-", wid),
                   ],
                 ),
                 divider,
@@ -280,13 +289,13 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    button("4", wid),
+                    mainButton("4", wid),
                     verticalDivider,
-                    button("5", wid),
+                    mainButton("5", wid),
                     verticalDivider,
-                    button("6", wid),
+                    mainButton("6", wid),
                     verticalDivider,
-                    button("+", wid),
+                    mainButton("+", wid),
                   ],
                 ),
                 divider,
@@ -294,13 +303,13 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    button("1", wid),
+                    mainButton("1", wid),
                     verticalDivider,
-                    button("2", wid),
+                    mainButton("2", wid),
                     verticalDivider,
-                    button("3", wid),
+                    mainButton("3", wid),
                     verticalDivider,
-                    button("D", wid),
+                    mainButton("D", wid),
                   ],
                 ),
                 divider,
@@ -308,11 +317,11 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    button(".", wid),
+                    mainButton(".", wid),
                     verticalDivider,
-                    button("0", wid),
+                    mainButton("0", wid),
                     verticalDivider,
-                    button("=", wid),
+                    mainButton("=", wid),
                   ],
                 ),
                 divider,
@@ -328,23 +337,33 @@ class _HomeState extends State<Home> {
     return ElevatedButton(
       onPressed: () {
         setState(() {
-          if ((controller.text == '' || controller.text.endsWith("^")) &&
-              tag == "^")
-            null;
-          else if (controller.text == '' && tag == "!")
-            null;
-          else if (controller.text != '' &&
-              isNum(controller.text[controller.text.length - 1]) &&
-              tag == "√") {
-            typeIt('×√');
-          } else if (controller.text != '' &&
-              isNum(controller.text[controller.text.length - 1])) typeIt(tag);
-
+          cursor = controller.selection.baseOffset;
+          cursor = cursor == -1 ? controller.text.length : cursor;
+          strBfrCursor = controller.text.substring(0, cursor);
+          ////////////////
+          if (tag == '√')
+            typeIt('√');
+          else if (tag == '^' &&
+              strBfrCursor != '' &&
+              (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
+                  strBfrCursor.endsWith(')') ||
+                  strBfrCursor.endsWith('!') ||
+                  strBfrCursor.endsWith('e')))
+            typeIt('^(');
+          else if (tag == '!' &&
+              strBfrCursor != '' &&
+              (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
+                  strBfrCursor.endsWith(')')))
+            typeIt('!');
+          else if (tag == 'e')
+            typeIt('e');
+          else if (tag == 'log') typeIt('㏒(');
+          /////////////////
           if (answer != '') {
-            eqcolor = Colors.grey.shade900;
-            resultcolor = Colors.grey.shade800;
-            eqsize = 48;
-            resultsize = 38;
+            eqColor = Colors.grey.shade900;
+            resultColor = Colors.grey.shade800;
+            eqSize = 48;
+            resultSize = 38;
           }
         });
       },
@@ -357,14 +376,14 @@ class _HomeState extends State<Home> {
           child: Text(
             tag,
             style:
-                GoogleFonts.roboto(fontSize: 25, fontWeight: FontWeight.w400),
+                GoogleFonts.nunito(fontSize: 25, fontWeight: FontWeight.w500),
           ),
         ),
       ),
       style: ElevatedButton.styleFrom(
           fixedSize: Size(wid * 0.18, wid * 0.20 / 2.5),
-          onPrimary: btheme.shade300,
-          // primary: btheme.shade200.withOpacity(0.2),
+          onPrimary: bTheme.shade300,
+          // primary: bTheme.shade200.withOpacity(0.2),
           primary: Colors.transparent,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -373,20 +392,20 @@ class _HomeState extends State<Home> {
     );
   }
 
-  ElevatedButton button(String tag, double wid) {
+  ElevatedButton mainButton(String tag, double wid) {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
             fixedSize: tag == "="
                 ? Size(wid * (0.21 * 2 + ((1 - 0.21 * 4) / 5)), wid * 0.21)
-                //width = width of 2 small button + gap between them
+                //width = width of 2 small mainButton + gap between them
                 : Size(wid * 0.21, wid * 0.21),
             onPrimary: tag == "="
                 ? Colors.grey.shade800
-                : (isOperator(tag) ? Colors.grey.shade900 : btheme.shade300),
+                : (isOperator(tag) ? Colors.grey.shade900 : bTheme.shade300),
             primary: tag == "="
-                ? btheme.shade300
+                ? bTheme.shade300
                 : (isOperator(tag)
-                    ? btheme.shade300
+                    ? bTheme.shade300
                     : Colors.grey.shade800.withOpacity(0.7)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(300),
@@ -394,117 +413,125 @@ class _HomeState extends State<Home> {
         onLongPress: () {
           if (tag == 'D') {
             setState(() {
-              controller.text = '';
-              answer = '';
+              cursor = controller.selection.baseOffset;
+              cursor = cursor == -1 ? controller.text.length : cursor;
+              strBfrCursor = controller.text.substring(0, cursor);
+              controller.text = controller.text.substring(cursor);
+              freezeCursor(1);
             });
           }
         },
         onPressed: () {
-          Fluttertoast.cancel();
-          if (tag == 'AC') {
-            setState(() {
+          setState(() {
+            ///////////////////////////
+            cursor = controller.selection.baseOffset;
+            cursor = cursor == -1 ? controller.text.length : cursor;
+            strBfrCursor = controller.text.substring(0, cursor);
+            ///////////////////////////
+            if (tag == 'AC') {
               controller.text = '';
               answer = '';
-
-              eqcolor = Colors.grey.shade900;
-              resultcolor = Colors.grey.shade800;
-              eqsize = 48;
-              resultsize = 38;
-            });
-          } else if (tag == 'D') {
-            setState(() {
-              int cursor = controller.selection.baseOffset;
-
-              int len = controller.text.length;
-              print("cursor = $cursor  \n length = $len ");
-
-              if ((cursor == len || cursor == -1) && controller.text != '') {
-                if (controller.text.endsWith("log"))
-                  controller.text =
-                      controller.text.substring(0, controller.text.length - 3);
-                else
-                  controller.text =
-                      controller.text.substring(0, controller.text.length - 1);
-              } else if (controller.text != '' && controller.text != '') {
-                cursor = cursor == -1 ? controller.text.length : cursor;
-                print("Backspace => $cursor");
+              eqColor = Colors.grey.shade900;
+              resultColor = Colors.grey.shade800;
+              eqSize = 48;
+              resultSize = 38;
+              //////////////////////
+            } else if (tag == 'D') {
+              if (controller.text != '') {
                 controller.text = controller.text
                         .substring(0, controller.selection.baseOffset - 1) +
                     controller.text.substring(controller.selection.baseOffset);
-                controller.selection = TextSelection.fromPosition(
-                  TextPosition(offset: cursor - 1),
-                ); //to set cursor at its position
+                freezeCursor(cursor);
               }
-              eqcolor = Colors.grey.shade900;
-              resultcolor = Colors.grey.shade800;
-              eqsize = 48;
-              resultsize = 38;
-            });
-          } else if (tag == '=') {
-            if (controller.text != '')
-              calculate();
-            else {
-              Fluttertoast.cancel();
-              toastMsg("Type Some expression and try");
-            }
+              //////////////////////
+              eqColor = Colors.grey.shade900;
+              resultColor = Colors.grey.shade800;
+              eqSize = 48;
+              resultSize = 38;
+              //////////////////////
+            } else if (tag == '=') {
+              if (controller.text != '') {
+                calculate();
+                cursor = controller.selection.baseOffset;
+                print('cursor >> $cursor');
+              } else {
+                toastMsg("Type Some expression and try");
+              }
+              ////////////////
+              eqColor = Colors.grey.shade800;
+              resultColor = Colors.grey.shade900;
+              eqSize = 38;
+              resultSize = 48;
+              /////////////////
+            } else if (tag == '( )') {
+              openBracket = strBfrCursor.split("(").length - 1;
+              closingBracket = strBfrCursor.split(")").length - 1;
 
-            eqcolor = Colors.grey.shade800;
-            resultcolor = Colors.grey.shade900;
-            eqsize = 38;
-            resultsize = 48;
-          } else if (tag == '( )') {
-            setState(() {
-              openbracket = controller.text.split("(").length - 1;
-              closingbracket = controller.text.split(")").length - 1;
-
-              if (openbracket == closingbracket ||
-                  controller.text.endsWith('+') ||
-                  controller.text.endsWith("-") ||
-                  controller.text.endsWith("×") ||
-                  controller.text.endsWith("÷") ||
-                  controller.text.endsWith("(")) {
-                (controller.text != '' &&
-                        isNum(controller.text[controller.text.length - 1]))
-                    // ^| else index error comes when we press () button when input is empty
+              if (openBracket == closingBracket ||
+                  strBfrCursor.endsWith('+') ||
+                  strBfrCursor.endsWith("-") ||
+                  strBfrCursor.endsWith("×") ||
+                  strBfrCursor.endsWith("÷") ||
+                  strBfrCursor.endsWith("(")) {
+                (strBfrCursor != '' &&
+                        isNum(strBfrCursor[strBfrCursor.length - 1]))
+                    // ^| else index error comes when we press () mainButton when input is empty
                     ? typeIt('×(')
-                    : (controller.text.endsWith('e'))
+                    : (strBfrCursor.endsWith('e'))
                         ? typeIt('^1(')
                         : typeIt('(');
-              } else if (openbracket > closingbracket &&
-                  !controller.text.endsWith('(')) {
+              } else if (openBracket > closingBracket &&
+                  !strBfrCursor.endsWith('(')) {
                 typeIt(')');
-                // controller.text += ')';
               }
-            });
-          } else {
-            setState(() {
-              if ((controller.text.endsWith('(') ||
-                      controller.text == '' ||
-                      controller.text == '-') &&
-                  (tag == '+' || tag == '÷' || tag == '×')) {
-                Fluttertoast.cancel();
+              /////////////////////
+            } else if (tag == '-') {
+              if (strBfrCursor.endsWith('-'))
+                null; //will not type - if there is already -
+              else if (strBfrCursor.endsWith('÷') ||
+                  strBfrCursor.endsWith('×') ||
+                  strBfrCursor.endsWith('+')) {
+                controller.text = controller.text
+                        .substring(0, controller.selection.baseOffset - 1) +
+                    controller.text.substring(controller.selection.baseOffset);
+                freezeCursor(cursor);
+                typeIt('–');
+              } else
+                typeIt('–');
+              ///////////////////////
+            } else if (isNum(tag) || tag == '.') {
+              if (tag == '.' &&
+                  (strBfrCursor.endsWith('(') || strBfrCursor.endsWith(')')))
                 toastMsg("Invalid Input");
-              } else if ((isOperator(tag) &&
-                      isNum(controller.text[controller.text.length - 1]) ==
-                          false) &&
-                  !controller.text.endsWith('!') &&
-                  !controller.text.endsWith(')') &&
-                  !controller.text.endsWith('e')) {
-                Fluttertoast.cancel();
-                toastMsg("Invalid Input");
-              } else {
+              else
                 typeIt(tag);
-                // controller.text += tag;
-              }
+            } else {
+              if (strBfrCursor != '–' &&
+                  (strBfrCursor.endsWith('÷') ||
+                      strBfrCursor.endsWith('×') ||
+                      strBfrCursor.endsWith('–') ||
+                      strBfrCursor.endsWith('+'))) {
+                controller.text = controller.text
+                        .substring(0, controller.selection.baseOffset - 1) +
+                    controller.text.substring(controller.selection.baseOffset);
+                freezeCursor(cursor);
+                typeIt(tag);
+              } else if ((strBfrCursor != '' &&
+                  (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
+                      strBfrCursor.endsWith(')'))))
+                typeIt(tag);
+              else
+                toastMsg("Invalid Input");
+
               /////////////////////////
               if (answer != '') {
-                eqcolor = Colors.grey.shade900;
-                resultcolor = Colors.grey.shade800;
-                eqsize = 48;
-                resultsize = 38;
+                eqColor = Colors.grey.shade900;
+                resultColor = Colors.grey.shade800;
+                eqSize = 48;
+                resultSize = 38;
               }
-            });
-          }
+            }
+          });
         },
         child: Center(
             child: tag == 'D'
@@ -537,92 +564,16 @@ class _HomeState extends State<Home> {
                                       : EdgeInsets.all(0),
                                   child: Text(
                                     tag,
-                                    style: GoogleFonts.roboto(
+                                    style: GoogleFonts.nunito(
                                         fontSize: tag == '=' ||
                                                 tag == '÷' ||
                                                 tag == '.'
                                             ? 42
                                             : 32,
-                                        fontWeight: FontWeight.w400),
+                                        fontWeight: FontWeight.w500),
                                   ),
                                 ),
                               ))))));
-  }
-
-  void calculate() {
-    String userInputToCalculate = controller.text;
-    print("-----------------------------\nGiven => $controller.text");
-    if (isOperator(userInputToCalculate[userInputToCalculate.length - 1]) ||
-        userInputToCalculate.endsWith('√') == true ||
-        userInputToCalculate.endsWith('^') == true) {
-      userInputToCalculate =
-          userInputToCalculate.substring(0, userInputToCalculate.length - 1);
-    } // if last digit is an operator it will ignore it
-
-    userInputToCalculate = userInputToCalculate.replaceAll('×', '*');
-    userInputToCalculate = userInputToCalculate.replaceAll('÷', '/');
-
-    while (userInputToCalculate.contains('√√') == true) {
-      userInputToCalculate = userInputToCalculate.replaceAllMapped(
-          RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
-    } //when muultiple √√√ comes
-
-    userInputToCalculate = userInputToCalculate.replaceAll('√', 'sqrt');
-
-    // userInputToCalculate = userInputToCalculate.replaceAll('(*sqrt', '(sqrt');
-    // // when someone wrote 4√2 => 4sqrt2 but 4*sqrt2 will work
-    // userInputToCalculate = userInputToCalculate.replaceAll('**', '*');
-    // if already someone wrote 4*√2 => it becomes 4**√2 (its an error), so cutting extra *
-    if (userInputToCalculate.startsWith('*') == true) {
-      userInputToCalculate = userInputToCalculate.substring(1);
-    } //if √4 => it will not create two * but * and start will create problem, so cutting it
-
-    userInputToCalculate = userInputToCalculate == 'e'
-        ? userInputToCalculate = 'e^1'
-        : userInputToCalculate; // e alone is giving error
-
-//log(10, <expression>) needed so converting log to like this
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-      RegExp(r"log([^,]+)"),
-      (match) => "log(10, ${match.group(1)})",
-    );
-    print("calculating => $userInputToCalculate");
-    try {
-      Parser p = Parser();
-      Expression exp = p.parse(userInputToCalculate);
-
-      // Expression exp = p.parse(userInputToCalculate);
-      // Bind variables:
-      ContextModel cm = ContextModel();
-      // Evaluate expression:
-      double eval = exp.evaluate(EvaluationType.REAL, cm);
-      setState(() {
-        print("eval $eval");
-        answer = eval.toStringAsFixed(eval.truncateToDouble() == eval
-            ? 0
-            : eval.toString().length - eval.toString().indexOf(".") - 1);
-
-        print("answer = $answer");
-        answer = eval.toString();
-        if (eval <= 0.000000000001 || eval >= 9999999999999) {
-          int index = answer.indexOf("e");
-          print("i = $index");
-        }
-
-        // if (answer.endsWith('.00000000000')) {
-        //   answer = answer.substring(0, answer.length - 12);
-        // }
-        print("1 answer = $eval");
-        //rempves all trailing zeroes after decimal
-        answer = answer.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), '');
-        print("final answer = $answer");
-        answer = answer == 'NaN' ? 'Keep it real' : answer;
-      });
-    } catch (e) {
-      setState(() {
-        answer = controller.text == '' ? '0' : "Error";
-      });
-    }
   }
 
   void showTheme(double wid, BuildContext context) {
@@ -637,11 +588,11 @@ class _HomeState extends State<Home> {
               borderRadius: BorderRadius.all(Radius.circular(30.0))),
           title: Center(
               child: Text(
-            "Theme",
-            style: GoogleFonts.openSans(
+            "THEME",
+            style: GoogleFonts.abel(
                 color: Colors.grey.shade400,
                 fontSize: 40,
-                fontWeight: FontWeight.w800),
+                fontWeight: FontWeight.w900),
           )),
           contentPadding: EdgeInsets.all(0),
           titlePadding: EdgeInsets.only(top: 20, bottom: 10),
@@ -718,19 +669,99 @@ class _HomeState extends State<Home> {
           onPressed: () {
             setState(() {
               if (color == "Green")
-                btheme = Colors.lightGreen;
+                bTheme = Colors.lightGreen;
               else if (color == "Blue")
-                btheme = Colors.lightBlue;
+                bTheme = Colors.lightBlue;
               else if (color == "Red")
-                btheme = Colors.red;
+                bTheme = Colors.red;
               else
-                btheme = Colors.orange;
+                bTheme = Colors.orange;
             });
             Navigator.of(context).pop();
           },
         ),
       ),
     );
+  }
+
+  void calculate() {
+    String userInputToCalculate = controller.text;
+    print("-----------------------------\nGiven => $userInputToCalculate");
+    ////////////////////////////////
+    if (isOperator(userInputToCalculate[userInputToCalculate.length - 1]) ||
+        userInputToCalculate.endsWith('√') ||
+        userInputToCalculate.endsWith('^')) {
+      userInputToCalculate =
+          userInputToCalculate.substring(0, userInputToCalculate.length - 1);
+    } // if last digit is an operator it will ignore it
+
+    ////////////////////////////////
+    userInputToCalculate = userInputToCalculate.replaceAll('×', '*');
+    userInputToCalculate = userInputToCalculate.replaceAll('÷', '/');
+    userInputToCalculate = userInputToCalculate.replaceAll('–', '-');
+    userInputToCalculate = userInputToCalculate.replaceAll('㏒', 'log');
+    ////////////////////////////////
+    while (userInputToCalculate.contains('√√')) {
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
+    } //when muultiple √√√ comes
+
+    userInputToCalculate = userInputToCalculate.replaceAll('√', 'sqrt');
+
+    // userInputToCalculate = userInputToCalculate.replaceAll('(*sqrt', '(sqrt');
+    // // when someone wrote 4√2 => 4sqrt2 but 4*sqrt2 will work
+    // userInputToCalculate = userInputToCalculate.replaceAll('**', '*');
+    // if already someone wrote 4*√2 => it becomes 4**√2 (its an error), so cutting extra *
+    if (userInputToCalculate.startsWith('*') == true) {
+      userInputToCalculate = userInputToCalculate.substring(1);
+    } //if √4 => it will not create two * but * and start will create problem, so cutting it
+
+    userInputToCalculate = userInputToCalculate == 'e'
+        ? userInputToCalculate = 'e^1'
+        : userInputToCalculate; // e alone is giving error
+
+//log(10, <expression>) needed so converting log to like this
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+      RegExp(r"log([^,]+)"),
+      (match) => "log(10, ${match.group(1)})",
+    );
+    print("calculating => $userInputToCalculate");
+    try {
+      Parser p = Parser();
+      Expression exp = p.parse(userInputToCalculate);
+
+      // Expression exp = p.parse(userInputToCalculate);
+      // Bind variables:
+      ContextModel cm = ContextModel();
+      // Evaluate expression:
+      double eval = exp.evaluate(EvaluationType.REAL, cm);
+      setState(() {
+        print("eval $eval");
+        answer = eval.toStringAsFixed(eval.truncateToDouble() == eval
+            ? 0
+            : eval.toString().length - eval.toString().indexOf(".") - 1);
+
+        print("answer = $answer");
+        answer = eval.toString();
+        if (eval <= 0.000000000001 || eval >= 9999999999999) {
+          int index = answer.indexOf("e");
+          print("i = $index");
+        }
+
+        // if (answer.endsWith('.00000000000')) {
+        //   answer = answer.substring(0, answer.length - 12);
+        // }
+        print("1 answer = $eval");
+        //rempves all trailing zeroes after decimal
+        answer = answer.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), '');
+        print("final answer = $answer");
+        answer = answer == 'NaN' ? 'Keep it real' : answer;
+      });
+    } catch (e) {
+      setState(() {
+        answer = controller.text == '' ? '0' : "Error";
+      });
+    }
   }
 
   bool isOperator(String value) {
@@ -772,11 +803,10 @@ class _HomeState extends State<Home> {
     }
   }
 
-  typeIt(String str) {
-    int cursor = controller.selection.baseOffset;
-    int len = controller.text.length;
-    cursor = cursor == -1 ? len : cursor;
-    print("cursor = $cursor  \n length = $len ");
+  void typeIt(String str) {
+    cursor = controller.selection.baseOffset;
+    cursor = cursor == -1 ? controller.text.length : cursor;
+    print("cursor = $cursor\n");
     controller.text = controller.text.substring(0, cursor) +
         str +
         controller.text.substring(cursor);
@@ -784,7 +814,7 @@ class _HomeState extends State<Home> {
         TextSelection.fromPosition(TextPosition(offset: cursor + str.length));
   }
 
-  openUrl(String url) async {
+  void openUrl(String url) async {
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } else {
@@ -792,14 +822,25 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<bool?> toastMsg(String h) {
-    return Fluttertoast.showToast(
+  void freezeCursor(int cursor) {
+    controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: cursor - 1),
+    );
+  }
+
+  void toastMsg(String h) {
+    Fluttertoast.cancel();
+    Fluttertoast.showToast(
         msg: h,
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.grey.shade900,
-        textColor: btheme.shade300,
+        textColor: bTheme.shade300,
         fontSize: 19.0);
   }
-}
+
+///////////////////////
+}//////THE END/////////
+///////////////////////
+
