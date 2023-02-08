@@ -148,14 +148,14 @@ class _HomeState extends State<Home> {
               if (value == 0) {
                 showTheme(wid, context);
               } else if (value == 1)
-                openurl('https://github.com/NARIKODANHRIDUL/');
+                openUrl('https://github.com/NARIKODANHRIDUL/');
               else if (value == 2)
                 Share.share(
                     "Check out Chess Timer App in Google PlayStore  https://play.google.com/store/apps/details?id=neriquest.chesstimer");
               else if (value == 3)
-                openurl(
+                openUrl(
                     'https://play.google.com/store/apps/details?id=neriquest.chesstimer');
-              else if (value == 4) toastmsg("Created by NeriQuest");
+              else if (value == 4) toastMsg("Created by NeriQuest");
             },
           ),
         ],
@@ -199,7 +199,7 @@ class _HomeState extends State<Home> {
                               await Clipboard.setData(
                                   ClipboardData(text: answer));
                               Fluttertoast.cancel();
-                              toastmsg("$answer copied to Clipboard");
+                              toastMsg("$answer copied to Clipboard");
                             },
                             child: Text(
                               answer,
@@ -235,15 +235,15 @@ class _HomeState extends State<Home> {
                 Row(
                   children: [
                     verticalDivider2,
-                    extrabutton("√", wid),
+                    extraButton("√", wid),
                     verticalDivider2,
-                    extrabutton("^", wid),
+                    extraButton("^", wid),
                     verticalDivider2,
-                    extrabutton("!", wid),
+                    extraButton("!", wid),
                     verticalDivider2,
-                    extrabutton("e", wid),
+                    extraButton("e", wid),
                     verticalDivider2,
-                    extrabutton("log", wid),
+                    extraButton("log", wid),
                     verticalDivider2,
                   ],
                 ),
@@ -324,7 +324,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  ElevatedButton extrabutton(String tag, double wid) {
+  ElevatedButton extraButton(String tag, double wid) {
     return ElevatedButton(
       onPressed: () {
         setState(() {
@@ -334,13 +334,11 @@ class _HomeState extends State<Home> {
           else if (controller.text == '' && tag == "!")
             null;
           else if (controller.text != '' &&
-              isnum(controller.text[controller.text.length - 1]) &&
+              isNum(controller.text[controller.text.length - 1]) &&
               tag == "√") {
-            typeit('*√');
-            // controller.text += '*√';
-          } else
-            typeit(tag);
-          // controller.text += tag;
+            typeIt('×√');
+          } else if (controller.text != '' &&
+              isNum(controller.text[controller.text.length - 1])) typeIt(tag);
 
           if (answer != '') {
             eqcolor = Colors.grey.shade900;
@@ -447,7 +445,7 @@ class _HomeState extends State<Home> {
               calculate();
             else {
               Fluttertoast.cancel();
-              toastmsg("Type Some expression and try");
+              toastMsg("Type Some expression and try");
             }
 
             eqcolor = Colors.grey.shade800;
@@ -466,15 +464,15 @@ class _HomeState extends State<Home> {
                   controller.text.endsWith("÷") ||
                   controller.text.endsWith("(")) {
                 (controller.text != '' &&
-                        isnum(controller.text[controller.text.length - 1]))
+                        isNum(controller.text[controller.text.length - 1]))
                     // ^| else index error comes when we press () button when input is empty
-                    ? typeit('×(')
+                    ? typeIt('×(')
                     : (controller.text.endsWith('e'))
-                        ? typeit('^1(')
-                        : typeit('(');
+                        ? typeIt('^1(')
+                        : typeIt('(');
               } else if (openbracket > closingbracket &&
                   !controller.text.endsWith('(')) {
-                typeit(')');
+                typeIt(')');
                 // controller.text += ')';
               }
             });
@@ -485,17 +483,17 @@ class _HomeState extends State<Home> {
                       controller.text == '-') &&
                   (tag == '+' || tag == '÷' || tag == '×')) {
                 Fluttertoast.cancel();
-                toastmsg("Invalid Input");
+                toastMsg("Invalid Input");
               } else if ((isOperator(tag) &&
-                      isnum(controller.text[controller.text.length - 1]) ==
+                      isNum(controller.text[controller.text.length - 1]) ==
                           false) &&
                   !controller.text.endsWith('!') &&
                   !controller.text.endsWith(')') &&
                   !controller.text.endsWith('e')) {
                 Fluttertoast.cancel();
-                toastmsg("Invalid Input");
+                toastMsg("Invalid Input");
               } else {
-                typeit(tag);
+                typeIt(tag);
                 // controller.text += tag;
               }
               /////////////////////////
@@ -658,11 +656,11 @@ class _HomeState extends State<Home> {
                 children: [
                   Row(
                     children: [
-                      themebutton(wid, "Green", context),
+                      themeButton(wid, "Green", context),
                       VerticalDivider(
                         width: 10,
                       ),
-                      themebutton(wid, "Blue", context),
+                      themeButton(wid, "Blue", context),
                     ],
                   ),
                   Divider(
@@ -670,11 +668,11 @@ class _HomeState extends State<Home> {
                   ),
                   Row(
                     children: [
-                      themebutton(wid, "Red", context),
+                      themeButton(wid, "Red", context),
                       VerticalDivider(
                         width: 10,
                       ),
-                      themebutton(wid, "Orange", context),
+                      themeButton(wid, "Orange", context),
                       Divider(
                         height: 10,
                       ),
@@ -689,7 +687,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  ClipRRect themebutton(double wid, String color, BuildContext context) {
+  ClipRRect themeButton(double wid, String color, BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.all(Radius.circular(30)),
       child: Container(
@@ -749,7 +747,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  bool isnum(String value) {
+  bool isNum(String value) {
     if (value == '1' ||
         value == '2' ||
         value == '3' ||
@@ -766,7 +764,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  bool isextra(String value) {
+  bool isExtra(String value) {
     if (value == '√' || value == '^' || value == '!' || value == 'e') {
       return true;
     } else {
@@ -774,7 +772,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  typeit(String str) {
+  typeIt(String str) {
     int cursor = controller.selection.baseOffset;
     int len = controller.text.length;
     cursor = cursor == -1 ? len : cursor;
@@ -786,7 +784,7 @@ class _HomeState extends State<Home> {
         TextSelection.fromPosition(TextPosition(offset: cursor + str.length));
   }
 
-  openurl(String url) async {
+  openUrl(String url) async {
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } else {
@@ -794,7 +792,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<bool?> toastmsg(String h) {
+  Future<bool?> toastMsg(String h) {
     return Fluttertoast.showToast(
         msg: h,
         toastLength: Toast.LENGTH_SHORT,
