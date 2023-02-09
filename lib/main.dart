@@ -729,7 +729,6 @@ class _HomeState extends State<Home> {
     if (openBracket > closingBracket && userInputToCalculate != '(')
       userInputToCalculate =
           userInputToCalculate + ')' * (openBracket - closingBracket);
-
     print("calculate => $userInputToCalculate");
     /////////////////////////////////
     try {
