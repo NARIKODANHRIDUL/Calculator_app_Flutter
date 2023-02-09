@@ -98,7 +98,7 @@ class _HomeState extends State<Home> {
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
                 value: 0,
-                textStyle: GoogleFonts.openSans(
+                textStyle: GoogleFonts.roboto(
                     fontSize: 20,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
@@ -108,7 +108,7 @@ class _HomeState extends State<Home> {
               ),
               PopupMenuItem(
                 value: 1,
-                textStyle: GoogleFonts.openSans(
+                textStyle: GoogleFonts.roboto(
                     fontSize: 20,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
@@ -116,7 +116,7 @@ class _HomeState extends State<Home> {
               ),
               PopupMenuItem(
                 value: 2,
-                textStyle: GoogleFonts.openSans(
+                textStyle: GoogleFonts.roboto(
                     fontSize: 20,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
@@ -126,7 +126,7 @@ class _HomeState extends State<Home> {
               ),
               PopupMenuItem(
                 value: 3,
-                textStyle: GoogleFonts.openSans(
+                textStyle: GoogleFonts.roboto(
                     fontSize: 20,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
@@ -423,6 +423,13 @@ class _HomeState extends State<Home> {
         },
         onPressed: () {
           setState(() {
+            if (answer != '') {
+              eqColor = Colors.grey.shade900;
+              resultColor = Colors.grey.shade800;
+              eqSize = 48;
+              resultSize = 38;
+            }
+
             ///////////////////////////
             cursor = controller.selection.baseOffset;
             cursor = cursor == -1 ? controller.text.length : cursor;
@@ -431,38 +438,33 @@ class _HomeState extends State<Home> {
             if (tag == 'AC') {
               controller.text = '';
               answer = '';
-              eqColor = Colors.grey.shade900;
-              resultColor = Colors.grey.shade800;
-              eqSize = 48;
-              resultSize = 38;
+
               //////////////////////
             } else if (tag == 'D') {
+              int value = strBfrCursor.endsWith('㏒(') ? 2 : 1;
               if (controller.text != '') {
                 controller.text = controller.text
-                        .substring(0, controller.selection.baseOffset - 1) +
+                        .substring(0, controller.selection.baseOffset - value) +
                     controller.text.substring(controller.selection.baseOffset);
-                freezeCursor(cursor);
+                freezeCursor(cursor - value + 1);
               }
               //////////////////////
-              eqColor = Colors.grey.shade900;
-              resultColor = Colors.grey.shade800;
-              eqSize = 48;
-              resultSize = 38;
-              //////////////////////
+
             } else if (tag == '=') {
               if (controller.text != '') {
                 calculate();
                 cursor = controller.selection.baseOffset;
                 print('cursor >> $cursor');
               } else {
+                answer = '';
                 toastMsg("Type Some expression and try");
               }
-              ////////////////
               eqColor = Colors.grey.shade800;
               resultColor = Colors.grey.shade900;
               eqSize = 38;
               resultSize = 48;
-              /////////////////
+              ////////////////
+
             } else if (tag == '( )') {
               openBracket = strBfrCursor.split("(").length - 1;
               closingBracket = strBfrCursor.split(")").length - 1;
@@ -501,12 +503,15 @@ class _HomeState extends State<Home> {
               ///////////////////////
             } else if (isNum(tag) || tag == '.') {
               if (tag == '.' &&
-                  (strBfrCursor.endsWith('(') || strBfrCursor.endsWith(')')))
+                  (strBfrCursor.endsWith('(') ||
+                      strBfrCursor.endsWith(')') ||
+                      strBfrCursor.endsWith('.')))
                 toastMsg("Invalid Input");
               else
                 typeIt(tag);
             } else {
               if (strBfrCursor != '–' &&
+                  !strBfrCursor.endsWith('(–') &&
                   (strBfrCursor.endsWith('÷') ||
                       strBfrCursor.endsWith('×') ||
                       strBfrCursor.endsWith('–') ||
@@ -524,12 +529,7 @@ class _HomeState extends State<Home> {
                 toastMsg("Invalid Input");
 
               /////////////////////////
-              if (answer != '') {
-                eqColor = Colors.grey.shade900;
-                resultColor = Colors.grey.shade800;
-                eqSize = 48;
-                resultSize = 38;
-              }
+
             }
           });
         },
@@ -597,7 +597,6 @@ class _HomeState extends State<Home> {
           contentPadding: EdgeInsets.all(0),
           titlePadding: EdgeInsets.only(top: 20, bottom: 10),
           insetPadding: EdgeInsets.all(0),
-          // actionsOverflowButtonSpacing: 10,
           actionsPadding: EdgeInsets.all(5),
           actions: [
             FittedBox(
@@ -695,67 +694,58 @@ class _HomeState extends State<Home> {
           userInputToCalculate.substring(0, userInputToCalculate.length - 1);
     } // if last digit is an operator it will ignore it
 
+    while (userInputToCalculate.contains('√√')) {
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
+    } //when muultiple √√√ comes it gives correct brackets
+
     ////////////////////////////////
     userInputToCalculate = userInputToCalculate.replaceAll('×', '*');
     userInputToCalculate = userInputToCalculate.replaceAll('÷', '/');
     userInputToCalculate = userInputToCalculate.replaceAll('–', '-');
     userInputToCalculate = userInputToCalculate.replaceAll('㏒', 'log');
+    userInputToCalculate = userInputToCalculate.replaceAll('√', '*sqrt');
+    userInputToCalculate = userInputToCalculate.replaceAll('(*', '(');
+    //(* is created due to above line
     ////////////////////////////////
-    while (userInputToCalculate.contains('√√')) {
-      userInputToCalculate = userInputToCalculate.replaceAllMapped(
-          RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
-    } //when muultiple √√√ comes
-
-    userInputToCalculate = userInputToCalculate.replaceAll('√', 'sqrt');
-
-    // userInputToCalculate = userInputToCalculate.replaceAll('(*sqrt', '(sqrt');
-    // // when someone wrote 4√2 => 4sqrt2 but 4*sqrt2 will work
-    // userInputToCalculate = userInputToCalculate.replaceAll('**', '*');
-    // if already someone wrote 4*√2 => it becomes 4**√2 (its an error), so cutting extra *
-    if (userInputToCalculate.startsWith('*') == true) {
-      userInputToCalculate = userInputToCalculate.substring(1);
-    } //if √4 => it will not create two * but * and start will create problem, so cutting it
-
-    userInputToCalculate = userInputToCalculate == 'e'
-        ? userInputToCalculate = 'e^1'
-        : userInputToCalculate; // e alone is giving error
-
-//log(10, <expression>) needed so converting log to like this
+    if (userInputToCalculate.startsWith('*'))
+      userInputToCalculate =
+          userInputToCalculate.substring(1, userInputToCalculate.length);
+    if (userInputToCalculate.endsWith('e')) userInputToCalculate += '^1';
+    //////////////////////////////////////////////////////
+    // log(5*3) => log(10, 5*3) //log(10,x) is thr syntax
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
-      RegExp(r"log([^,]+)"),
+      RegExp(r"log\(([^,]+)\)"),
       (match) => "log(10, ${match.group(1)})",
     );
-    print("calculating => $userInputToCalculate");
+    //////////////////
+    //makes 8e => 8*e
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+      RegExp(r"(\d)+e"),
+      (match) => "${match.group(1)}*e",
+    );
+    openBracket = userInputToCalculate.split("(").length - 1;
+    closingBracket = userInputToCalculate.split(")").length - 1;
+    if (openBracket > closingBracket && userInputToCalculate != '(')
+      userInputToCalculate =
+          userInputToCalculate + ')' * (openBracket - closingBracket);
+
+    print("calculate => $userInputToCalculate");
+    /////////////////////////////////
     try {
       Parser p = Parser();
       Expression exp = p.parse(userInputToCalculate);
-
-      // Expression exp = p.parse(userInputToCalculate);
-      // Bind variables:
       ContextModel cm = ContextModel();
-      // Evaluate expression:
       double eval = exp.evaluate(EvaluationType.REAL, cm);
       setState(() {
         print("eval $eval");
-        answer = eval.toStringAsFixed(eval.truncateToDouble() == eval
-            ? 0
-            : eval.toString().length - eval.toString().indexOf(".") - 1);
-
-        print("answer = $answer");
         answer = eval.toString();
-        if (eval <= 0.000000000001 || eval >= 9999999999999) {
-          int index = answer.indexOf("e");
-          print("i = $index");
-        }
-
-        // if (answer.endsWith('.00000000000')) {
-        //   answer = answer.substring(0, answer.length - 12);
-        // }
-        print("1 answer = $eval");
-        //rempves all trailing zeroes after decimal
-        answer = answer.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), '');
-        print("final answer = $answer");
+        answer = removeTrailingZeros(answer);
+        if (!answer.contains('e')) answer = toExponentForm(answer);
+        answer = removeExtraDecimals(answer);
+        answer = answer.replaceAll('e', 'E');
         answer = answer == 'NaN' ? 'Keep it real' : answer;
+        //Nan comes when sqrt(-ve)
       });
     } catch (e) {
       setState(() {
@@ -840,7 +830,38 @@ class _HomeState extends State<Home> {
         fontSize: 19.0);
   }
 
-///////////////////////
-}//////THE END/////////
-///////////////////////
+  String removeTrailingZeros(String value) {
+    int eIndex = (value.contains('e')) ? value.indexOf('e') : value.length;
+    int dotIndex = value.indexOf('.');
+    int i = eIndex - 1;
+    while (i >= dotIndex && (value[i] == '0' || value[i] == '.')) i--;
+    return value.substring(0, i + 1) + value.substring(eIndex);
+  }
 
+  String removeExtraDecimals(String value) {
+    int eIndex = value.indexOf('e');
+    eIndex = eIndex == -1 ? value.length : eIndex;
+    int dotIndex = value.indexOf('.');
+    if (dotIndex == -1) return value.substring(0, eIndex);
+    int i = dotIndex + 9;
+    if (i >= eIndex) i = eIndex;
+    return value.substring(0, dotIndex + 1) +
+        value.substring(dotIndex + 1, i) +
+        value.substring(eIndex);
+  }
+
+  String toExponentForm(String value) {
+    if (value.length > 14) {
+      int length = value.length;
+      int firstDigits = int.parse(value.substring(0, 1));
+      int decimalPlaces = length - 1;
+      String exponentForm =
+          "$firstDigits." + value.substring(1, 14) + "e+$decimalPlaces";
+      return exponentForm;
+    }
+    return value;
+  }
+
+///////////////////////
+} //////THE END/////////
+///////////////////////
