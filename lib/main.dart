@@ -7,7 +7,16 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-void main() {
+Future<void> main() async {
+  final binding = WidgetsFlutterBinding.ensureInitialized();
+  binding.deferFirstFrame();
+  binding.addPostFrameCallback((_) async {
+    BuildContext context = binding.renderViewElement as BuildContext;
+    await precacheImage(const AssetImage("images/neriquest.png"), context);
+    Text("", style: GoogleFonts.ubuntuMono());
+    Text("", style: GoogleFonts.ubuntu());
+    binding.allowFirstFrame();
+  });
   runApp(const MyApp());
 }
 
@@ -40,10 +49,10 @@ class _HomeState extends State<Home> {
   String strBfrCursor = '';
   int cursor = 0;
 
-  var resultColor = Colors.grey.shade900;
-  var eqColor = Colors.grey.shade900;
-  double resultSize = 38;
-  double eqSize = 48;
+  var resultColor = Colors.grey.shade300.withOpacity(0.8);
+  var eqColor = Colors.grey.shade100;
+  double resultSize = 40;
+  double eqSize = 50;
 
   var bTheme = Colors.lightGreen;
 
@@ -63,22 +72,14 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     // final hei = MediaQuery.of(context).size.height; //screen height
     final wid = MediaQuery.of(context).size.width; //screen width
-    const divider = Divider(
-      height: 10,
-      thickness: 0,
-    );
-
-    var verticalDivider = VerticalDivider(
-      width: (1 - 0.21 * 4) / 5 * wid,
-    );
-    var verticalDivider2 = VerticalDivider(
-      width: (1 - 0.21 * 4) / 10 * wid,
-    );
+    const divider = Divider(height: 10, thickness: 0);
+    var verticalDivider = VerticalDivider(width: (1 - 0.21 * 4) / 5 * wid);
+    var verticalDivider2 = VerticalDivider(width: (1 - 0.21 * 4) / 10 * wid);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: Color.fromARGB(255, 20, 20, 20),
       appBar: AppBar(
-        backgroundColor: Colors.grey.shade600,
+        backgroundColor: Color.fromARGB(255, 40, 40, 40),
         elevation: 0,
         title: Text("",
             style: GoogleFonts.openSans(
@@ -98,36 +99,32 @@ class _HomeState extends State<Home> {
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
                 value: 0,
-                textStyle: GoogleFonts.roboto(
-                    fontSize: 20,
+                textStyle: GoogleFonts.ubuntu(
+                    fontSize: 22,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
-                child: const Text(
-                  "Theme",
-                ),
+                child: const Text("Theme"),
               ),
               PopupMenuItem(
                 value: 1,
-                textStyle: GoogleFonts.roboto(
-                    fontSize: 20,
+                textStyle: GoogleFonts.ubuntu(
+                    fontSize: 22,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
                 child: const Text("About Us"),
               ),
               PopupMenuItem(
                 value: 2,
-                textStyle: GoogleFonts.roboto(
-                    fontSize: 20,
+                textStyle: GoogleFonts.ubuntu(
+                    fontSize: 22,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
-                child: const Text(
-                  "Share App",
-                ),
+                child: const Text("Share App"),
               ),
               PopupMenuItem(
                 value: 3,
-                textStyle: GoogleFonts.roboto(
-                    fontSize: 20,
+                textStyle: GoogleFonts.ubuntu(
+                    fontSize: 22,
                     color: Colors.grey.shade800,
                     fontWeight: FontWeight.w700),
                 child: const Text("Rate Us"),
@@ -178,7 +175,7 @@ class _HomeState extends State<Home> {
                 bottomRight: Radius.circular(30),
               ),
               child: Container(
-                color: Colors.grey.shade600,
+                color: Color.fromARGB(255, 40, 40, 40),
                 child: Align(
                   alignment: Alignment.bottomRight,
                   child: Padding(
@@ -190,7 +187,7 @@ class _HomeState extends State<Home> {
                         TextField(
                           textAlign: TextAlign.right,
                           autofocus: true,
-                          style: GoogleFonts.openSans(
+                          style: GoogleFonts.ubuntuMono(
                               fontSize: eqSize, color: eqColor),
                           cursorColor: bTheme.shade300,
                           textDirection: TextDirection.ltr,
@@ -199,7 +196,6 @@ class _HomeState extends State<Home> {
                           controller: controller,
                           decoration: InputDecoration.collapsed(
                             hintText: '',
-                            // counterText: '',
                           ),
                         ),
                         SingleChildScrollView(
@@ -212,7 +208,7 @@ class _HomeState extends State<Home> {
                             },
                             child: Text(
                               answer,
-                              style: TextStyle(
+                              style: GoogleFonts.ubuntuMono(
                                 color: answer == "Error"
                                     ? Color.fromARGB(255, 252, 114, 63)
                                     : answer == "Infinity" ||
@@ -263,7 +259,7 @@ class _HomeState extends State<Home> {
                   children: <Widget>[
                     mainButton("AC", wid),
                     verticalDivider,
-                    mainButton("( )", wid),
+                    mainButton("()", wid),
                     verticalDivider,
                     mainButton("÷", wid),
                     verticalDivider,
@@ -360,10 +356,10 @@ class _HomeState extends State<Home> {
           else if (tag == 'log') typeIt('㏒(');
           /////////////////
           if (answer != '') {
-            eqColor = Colors.grey.shade900;
-            resultColor = Colors.grey.shade800;
-            eqSize = 48;
-            resultSize = 38;
+            eqColor = Colors.grey.shade100;
+            resultColor = Colors.grey.shade300.withOpacity(0.8);
+            eqSize = 50;
+            resultSize = 40;
           }
         });
       },
@@ -375,8 +371,8 @@ class _HomeState extends State<Home> {
               : EdgeInsets.all(0),
           child: Text(
             tag,
-            style:
-                GoogleFonts.nunito(fontSize: 25, fontWeight: FontWeight.w500),
+            style: GoogleFonts.ubuntuMono(
+                fontSize: 30, fontWeight: FontWeight.w500),
           ),
         ),
       ),
@@ -406,7 +402,7 @@ class _HomeState extends State<Home> {
                 ? bTheme.shade300
                 : (isOperator(tag)
                     ? bTheme.shade300
-                    : Colors.grey.shade800.withOpacity(0.7)),
+                    : Color.fromARGB(255, 25, 25, 25)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(300),
             )),
@@ -424,10 +420,10 @@ class _HomeState extends State<Home> {
         onPressed: () {
           setState(() {
             if (answer != '') {
-              eqColor = Colors.grey.shade900;
-              resultColor = Colors.grey.shade800;
-              eqSize = 48;
-              resultSize = 38;
+              eqColor = Colors.grey.shade100;
+              resultColor = Colors.grey.shade300.withOpacity(0.8);
+              eqSize = 50;
+              resultSize = 40;
             }
 
             ///////////////////////////
@@ -459,13 +455,13 @@ class _HomeState extends State<Home> {
                 answer = '';
                 toastMsg("Type Some expression and try");
               }
-              eqColor = Colors.grey.shade800;
-              resultColor = Colors.grey.shade900;
-              eqSize = 38;
-              resultSize = 48;
+              eqColor = Colors.grey.shade300.withOpacity(0.8);
+              resultColor = Colors.grey.shade100;
+              eqSize = 40;
+              resultSize = 50;
               ////////////////
 
-            } else if (tag == '( )') {
+            } else if (tag == '()') {
               openBracket = strBfrCursor.split("(").length - 1;
               closingBracket = strBfrCursor.split(")").length - 1;
 
@@ -488,7 +484,7 @@ class _HomeState extends State<Home> {
               }
               /////////////////////
             } else if (tag == '-') {
-              if (strBfrCursor.endsWith('-'))
+              if (strBfrCursor.endsWith('–'))
                 null; //will not type - if there is already -
               else if (strBfrCursor.endsWith('÷') ||
                   strBfrCursor.endsWith('×') ||
@@ -564,13 +560,15 @@ class _HomeState extends State<Home> {
                                       : EdgeInsets.all(0),
                                   child: Text(
                                     tag,
-                                    style: GoogleFonts.nunito(
+                                    style: GoogleFonts.ubuntuMono(
                                         fontSize: tag == '=' ||
                                                 tag == '÷' ||
                                                 tag == '.'
-                                            ? 42
-                                            : 32,
-                                        fontWeight: FontWeight.w500),
+                                            ? 50
+                                            : 40,
+                                        fontWeight: tag == '÷'
+                                            ? FontWeight.w200
+                                            : FontWeight.w500),
                                   ),
                                 ),
                               ))))));
@@ -613,19 +611,13 @@ class _HomeState extends State<Home> {
                       themeButton(wid, "Blue", context),
                     ],
                   ),
-                  Divider(
-                    height: 10,
-                  ),
+                  Divider(height: 10),
                   Row(
                     children: [
                       themeButton(wid, "Red", context),
-                      VerticalDivider(
-                        width: 10,
-                      ),
+                      VerticalDivider(width: 10),
                       themeButton(wid, "Orange", context),
-                      Divider(
-                        height: 10,
-                      ),
+                      Divider(height: 10),
                     ],
                   ),
                 ],
@@ -740,6 +732,7 @@ class _HomeState extends State<Home> {
         print("eval $eval");
         answer = eval.toString();
         answer = removeTrailingZeros(answer);
+
         if (!answer.contains('e')) answer = toExponentForm(answer);
         answer = removeExtraDecimals(answer);
         answer = answer.replaceAll('e', 'E');
@@ -756,7 +749,7 @@ class _HomeState extends State<Home> {
   bool isOperator(String value) {
     if (value == 'AC' ||
         value == 'D' ||
-        value == '( )' ||
+        value == '()' ||
         value == '÷' ||
         value == '×' ||
         value == '-' ||
@@ -851,16 +844,22 @@ class _HomeState extends State<Home> {
 
   String toExponentForm(String value) {
     if (value.length > 14) {
-      int length = value.length;
-      int firstDigits = int.parse(value.substring(0, 1));
-      int decimalPlaces = length - 1;
-      String exponentForm =
-          "$firstDigits." + value.substring(1, 14) + "e+$decimalPlaces";
-      return exponentForm;
+      int dot = (value.indexOf('.') != -1) ? value.indexOf('.') : value.length;
+      int exp = dot - 1;
+      if (dot < 8)
+        return value;
+      else if (exp > 14)
+        return value[0] + '.' + value.substring(1, 14) + "e+$exp";
+      else
+        return value[0] +
+            '.' +
+            value.substring(1, dot) +
+            value.substring(dot + 1, 14) +
+            'e+$exp';
     }
     return value;
   }
 
-///////////////////////
-} //////THE END/////////
+/////////////////////////
+}///////THE END/////////
 ///////////////////////
