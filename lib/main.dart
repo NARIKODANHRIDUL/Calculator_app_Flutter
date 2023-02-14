@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late TextEditingController controller;
+  late ScrollController scrollController = ScrollController();
+
   // String controller.text= '';
   String answer = '';
   int openBracket = 0;
@@ -60,11 +63,13 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     controller = TextEditingController();
+    // scrollController = ScrollController();
   }
 
   @override
   void dispose() {
     controller.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -73,13 +78,14 @@ class _HomeState extends State<Home> {
     // final hei = MediaQuery.of(context).size.height; //screen height
     final wid = MediaQuery.of(context).size.width; //screen width
     const divider = Divider(height: 10, thickness: 0);
-    var verticalDivider = VerticalDivider(width: (1 - 0.21 * 4) / 5 * wid);
-    var verticalDivider2 = VerticalDivider(width: (1 - 0.21 * 4) / 10 * wid);
-
+    var verticalDivider = VerticalDivider(width: (1 - 0.22 * 4) / 5 * wid);
+    var verticalDivider2 = VerticalDivider(width: (1 - 0.22 * 4) / 10 * wid);
+    Color topBox = Color.fromARGB(255, 40, 40, 40);
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 20, 20, 20),
+      //bottom button box
+      backgroundColor: Color.fromARGB(255, 23, 23, 23),
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 40, 40, 40),
+        backgroundColor: topBox,
         elevation: 0,
         title: Text("",
             style: GoogleFonts.openSans(
@@ -175,7 +181,7 @@ class _HomeState extends State<Home> {
                 bottomRight: Radius.circular(30),
               ),
               child: Container(
-                color: Color.fromARGB(255, 40, 40, 40),
+                color: topBox,
                 child: Align(
                   alignment: Alignment.bottomRight,
                   child: Padding(
@@ -184,42 +190,54 @@ class _HomeState extends State<Home> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextField(
-                          textAlign: TextAlign.right,
-                          autofocus: true,
-                          style: GoogleFonts.ubuntuMono(
-                              fontSize: eqSize, color: eqColor),
-                          cursorColor: bTheme.shade300,
-                          textDirection: TextDirection.ltr,
-                          cursorRadius: Radius.circular(12),
-                          keyboardType: TextInputType.none,
-                          controller: controller,
-                          decoration: InputDecoration.collapsed(
-                            hintText: '',
+                        Scrollbar(
+                          thumbVisibility: true,
+                          thickness: 1,
+                          child: TextField(
+                            scrollController: scrollController,
+                            maxLines: 1,
+                            textAlign: TextAlign.right,
+                            autofocus: true,
+                            style: GoogleFonts.ubuntuMono(
+                                fontSize: eqSize, color: eqColor),
+                            cursorColor: bTheme.shade300,
+                            textDirection: TextDirection.ltr,
+                            cursorRadius: Radius.circular(12),
+                            keyboardType: TextInputType.none,
+                            controller: controller,
+                            textInputAction: TextInputAction.previous,
+                            decoration: InputDecoration.collapsed(
+                              hintText: '',
+                            ),
                           ),
                         ),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: GestureDetector(
-                            onLongPress: () async {
-                              await Clipboard.setData(
-                                  ClipboardData(text: answer));
-                              toastMsg("$answer copied to Clipboard");
-                            },
-                            child: Text(
-                              answer,
-                              style: GoogleFonts.ubuntuMono(
-                                color: answer == "Error"
-                                    ? Color.fromARGB(255, 252, 114, 63)
-                                    : answer == "Infinity" ||
-                                            answer == "-Infinity"
-                                        ? Color.fromARGB(255, 252, 114, 63)
-                                        : answer == "Keep it real"
-                                            ? Color.fromARGB(255, 252, 114, 63)
-                                            : resultColor,
-                                fontSize: resultSize,
+                        Scrollbar(
+                          thumbVisibility: true,
+                          thickness: 1,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: GestureDetector(
+                              onLongPress: () async {
+                                await Clipboard.setData(
+                                    ClipboardData(text: answer));
+                                toastMsg("$answer copied to Clipboard");
+                              },
+                              child: Text(
+                                answer,
+                                style: GoogleFonts.ubuntuMono(
+                                  color: answer == "Error"
+                                      ? Color.fromARGB(255, 252, 114, 63)
+                                      : answer == "Infinity" ||
+                                              answer == "-Infinity"
+                                          ? Color.fromARGB(255, 252, 114, 63)
+                                          : answer == "Keep it real"
+                                              ? Color.fromARGB(
+                                                  255, 252, 114, 63)
+                                              : resultColor,
+                                  fontSize: resultSize,
+                                ),
+                                textAlign: TextAlign.right,
                               ),
-                              textAlign: TextAlign.right,
                             ),
                           ),
                         ),
@@ -392,9 +410,9 @@ class _HomeState extends State<Home> {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
             fixedSize: tag == "="
-                ? Size(wid * (0.21 * 2 + ((1 - 0.21 * 4) / 5)), wid * 0.21)
+                ? Size(wid * (0.22 * 2 + ((1 - 0.22 * 4) / 5)), wid * 0.22)
                 //width = width of 2 small mainButton + gap between them
-                : Size(wid * 0.21, wid * 0.21),
+                : Size(wid * 0.22, wid * 0.22),
             onPrimary: tag == "="
                 ? Colors.grey.shade800
                 : (isOperator(tag) ? Colors.grey.shade900 : bTheme.shade300),
@@ -402,7 +420,8 @@ class _HomeState extends State<Home> {
                 ? bTheme.shade300
                 : (isOperator(tag)
                     ? bTheme.shade300
-                    : Color.fromARGB(255, 25, 25, 25)),
+                    : Color.fromARGB(255, 30, 30, 30)),
+            //button color
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(300),
             )),
@@ -419,6 +438,12 @@ class _HomeState extends State<Home> {
         },
         onPressed: () {
           setState(() {
+            ///////////////////////////
+            cursor = controller.selection.baseOffset;
+            cursor = cursor == -1 ? controller.text.length : cursor;
+            strBfrCursor = controller.text.substring(0, cursor);
+            ///////////////////////////
+
             if (answer != '') {
               eqColor = Colors.grey.shade100;
               resultColor = Colors.grey.shade300.withOpacity(0.8);
@@ -426,11 +451,6 @@ class _HomeState extends State<Home> {
               resultSize = 40;
             }
 
-            ///////////////////////////
-            cursor = controller.selection.baseOffset;
-            cursor = cursor == -1 ? controller.text.length : cursor;
-            strBfrCursor = controller.text.substring(0, cursor);
-            ///////////////////////////
             if (tag == 'AC') {
               controller.text = '';
               answer = '';
@@ -467,25 +487,18 @@ class _HomeState extends State<Home> {
 
               if (openBracket == closingBracket ||
                   strBfrCursor.endsWith('+') ||
-                  strBfrCursor.endsWith("-") ||
+                  strBfrCursor.endsWith("–") ||
                   strBfrCursor.endsWith("×") ||
                   strBfrCursor.endsWith("÷") ||
-                  strBfrCursor.endsWith("(")) {
-                (strBfrCursor != '' &&
-                        isNum(strBfrCursor[strBfrCursor.length - 1]))
-                    // ^| else index error comes when we press () mainButton when input is empty
-                    ? typeIt('×(')
-                    : (strBfrCursor.endsWith('e'))
-                        ? typeIt('^1(')
-                        : typeIt('(');
-              } else if (openBracket > closingBracket &&
-                  !strBfrCursor.endsWith('(')) {
-                typeIt(')');
-              }
+                  strBfrCursor.endsWith("("))
+                typeIt('(');
+              else if (openBracket > closingBracket) typeIt(')');
+
               /////////////////////
             } else if (tag == '-') {
               if (strBfrCursor.endsWith('–'))
-                null; //will not type - if there is already -
+                toastMsg(
+                    "Invalid Input"); //will not type - if there is already -
               else if (strBfrCursor.endsWith('÷') ||
                   strBfrCursor.endsWith('×') ||
                   strBfrCursor.endsWith('+')) {
@@ -505,6 +518,7 @@ class _HomeState extends State<Home> {
                 toastMsg("Invalid Input");
               else
                 typeIt(tag);
+              ///////////////////////
             } else {
               if (strBfrCursor != '–' &&
                   !strBfrCursor.endsWith('(–') &&
@@ -519,15 +533,16 @@ class _HomeState extends State<Home> {
                 typeIt(tag);
               } else if ((strBfrCursor != '' &&
                   (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
-                      strBfrCursor.endsWith(')'))))
+                      strBfrCursor.endsWith(')') ||
+                      strBfrCursor.endsWith('e'))))
                 typeIt(tag);
               else
                 toastMsg("Invalid Input");
-
-              /////////////////////////
-
             }
           });
+          /////////////////////////
+          //fixscroll
+          scrollTheExpression(strBfrCursor);
         },
         child: Center(
             child: tag == 'D'
@@ -556,7 +571,7 @@ class _HomeState extends State<Home> {
                             : FittedBox(
                                 child: Padding(
                                   padding: tag == '.'
-                                      ? EdgeInsets.only(bottom: wid * 0.21 / 5)
+                                      ? EdgeInsets.only(bottom: wid * 0.22 / 5)
                                       : EdgeInsets.all(0),
                                   child: Text(
                                     tag,
@@ -698,24 +713,34 @@ class _HomeState extends State<Home> {
     userInputToCalculate = userInputToCalculate.replaceAll('㏒', 'log');
     userInputToCalculate = userInputToCalculate.replaceAll('√', '*sqrt');
     userInputToCalculate = userInputToCalculate.replaceAll('(*', '(');
+    userInputToCalculate = userInputToCalculate.replaceAll(')(', ')*(');
+
     //(* is created due to above line
     ////////////////////////////////
     if (userInputToCalculate.startsWith('*'))
       userInputToCalculate =
           userInputToCalculate.substring(1, userInputToCalculate.length);
     if (userInputToCalculate.endsWith('e')) userInputToCalculate += '^1';
-    //////////////////////////////////////////////////////
+    ////////////////////////////////
     // log(5*3) => log(10, 5*3) //log(10,x) is thr syntax
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
-      RegExp(r"log\(([^,]+)\)"),
-      (match) => "log(10, ${match.group(1)})",
-    );
-    //////////////////
+        RegExp(r"log\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
     //makes 8e => 8*e
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
-      RegExp(r"(\d)+e"),
-      (match) => "${match.group(1)}*e",
-    );
+        RegExp(r"(\d)+e"), (match) => "${match.group(1)}*e");
+    // makes 9(5) => 9*(5)
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r'(\d+)\('), (match) => '${match.group(1)}*(');
+    // makes (5)9 => (5)*9
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r'\)(\d+)'), (match) => ')*${match.group(1)}');
+    // e5 => e^1 *5
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r'\e(\d+)'), (match) => 'e^1*${match.group(1)}');
+    //e( => e^1 *(
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
+
     openBracket = userInputToCalculate.split("(").length - 1;
     closingBracket = userInputToCalculate.split(")").length - 1;
     if (openBracket > closingBracket && userInputToCalculate != '(')
@@ -732,7 +757,6 @@ class _HomeState extends State<Home> {
         print("eval $eval");
         answer = eval.toString();
         answer = removeTrailingZeros(answer);
-
         if (!answer.contains('e')) answer = toExponentForm(answer);
         answer = removeExtraDecimals(answer);
         answer = answer.replaceAll('e', 'E');
@@ -858,6 +882,33 @@ class _HomeState extends State<Home> {
             'e+$exp';
     }
     return value;
+  }
+
+  int a = 1;
+  void scrollTheExpression(String strBfrCursor) {
+    bool b = (controller.text.length >= a) ? true : false;
+
+    if (scrollController.position.maxScrollExtent != 0 && b) {
+      a = controller.text.length;
+      b = false;
+    }
+    if (strBfrCursor.length >= a) {}
+
+    if (cursor == controller.text.length - 1)
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          var s = scrollController.position.maxScrollExtent;
+          print(" Scroll $s");
+          scrollController.animateTo(scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
+        }
+      });
+    else {
+      // SchedulerBinding.instance.addPostFrameCallback((_) {
+      //   scrollController.animateTo(20.272727272727252,
+      //       duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
+      // });
+    }
   }
 
 /////////////////////////
