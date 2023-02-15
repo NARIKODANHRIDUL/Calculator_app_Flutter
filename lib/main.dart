@@ -417,11 +417,11 @@ class _HomeState extends State<Home> {
                 ? Colors.grey.shade800
                 : (isOperator(tag) ? Colors.grey.shade900 : bTheme.shade300),
             primary: tag == "="
-                ? bTheme.shade300
+                ? bTheme.shade300.withOpacity(0.9)
                 : (isOperator(tag)
-                    ? bTheme.shade300
-                    : Color.fromARGB(255, 30, 30, 30)),
-            //button color
+                    ? bTheme.shade300.withOpacity(0.9)
+                    : Color.fromARGB(255, 32, 32, 32)),
+            //buttonColor
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(300),
             )),
@@ -705,6 +705,11 @@ class _HomeState extends State<Home> {
       userInputToCalculate = userInputToCalculate.replaceAllMapped(
           RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
     } //when muultiple √√√ comes it gives correct brackets
+    openBracket = userInputToCalculate.split("(").length - 1;
+    closingBracket = userInputToCalculate.split(")").length - 1;
+    if (openBracket > closingBracket && userInputToCalculate != '(')
+      userInputToCalculate =
+          userInputToCalculate + ')' * (openBracket - closingBracket);
 
     ////////////////////////////////
     userInputToCalculate = userInputToCalculate.replaceAll('×', '*');
@@ -723,8 +728,11 @@ class _HomeState extends State<Home> {
     if (userInputToCalculate.endsWith('e')) userInputToCalculate += '^1';
     ////////////////////////////////
     // log(5*3) => log(10, 5*3) //log(10,x) is thr syntax
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r"log\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
+    int logCount = userInputToCalculate.split("log").length - 1;
+    for (int i = 0; i < logCount; i++) //when there is multiple log
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r"log\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
+
     //makes 8e => 8*e
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
         RegExp(r"(\d)+e"), (match) => "${match.group(1)}*e");
@@ -741,11 +749,6 @@ class _HomeState extends State<Home> {
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
         RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
 
-    openBracket = userInputToCalculate.split("(").length - 1;
-    closingBracket = userInputToCalculate.split(")").length - 1;
-    if (openBracket > closingBracket && userInputToCalculate != '(')
-      userInputToCalculate =
-          userInputToCalculate + ')' * (openBracket - closingBracket);
     print("calculate => $userInputToCalculate");
     /////////////////////////////////
     try {
@@ -753,13 +756,16 @@ class _HomeState extends State<Home> {
       Expression exp = p.parse(userInputToCalculate);
       ContextModel cm = ContextModel();
       double eval = exp.evaluate(EvaluationType.REAL, cm);
+
+      print("eval $eval");
       setState(() {
-        print("eval $eval");
         answer = eval.toString();
+
         answer = removeTrailingZeros(answer);
         if (!answer.contains('e')) answer = toExponentForm(answer);
         answer = removeExtraDecimals(answer);
-        answer = answer.replaceAll('e', 'E');
+        print("answer:  $answer");
+
         answer = answer == 'NaN' ? 'Keep it real' : answer;
         //Nan comes when sqrt(-ve)
       });
@@ -858,7 +864,7 @@ class _HomeState extends State<Home> {
     int eIndex = value.indexOf('e');
     eIndex = eIndex == -1 ? value.length : eIndex;
     int dotIndex = value.indexOf('.');
-    if (dotIndex == -1) return value.substring(0, eIndex);
+    if (dotIndex == -1) return value;
     int i = dotIndex + 9;
     if (i >= eIndex) i = eIndex;
     return value.substring(0, dotIndex + 1) +
