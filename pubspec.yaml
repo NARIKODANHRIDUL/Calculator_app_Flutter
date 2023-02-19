@@ -39,7 +39,8 @@ dependencies:
   url_launcher: ^6.0.18
   share_plus: ^6.3.0
   fluttertoast: ^8.1.2
-
+  shared_preferences: ^2.0.17
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

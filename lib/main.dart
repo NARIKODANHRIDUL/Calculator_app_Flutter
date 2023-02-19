@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +6,7 @@ import 'package:math_expressions/math_expressions.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +27,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(primarySwatch: Colors.lightGreen),
+      theme: ThemeData(primarySwatch: Colors.grey),
       debugShowCheckedModeBanner: false,
-      home: kIsWeb ? const SizedBox(width: 400, child: Home()) : const Home(),
+      home: const Home(),
     );
   }
 }
@@ -51,9 +51,16 @@ class _HomeState extends State<Home> {
   int closingBracket = 0;
   String strBfrCursor = '';
   int cursor = 0;
-
+/////////////////
+  Color bgColor = Color.fromARGB(255, 240, 240, 240);
+  Color topBox = Color.fromARGB(255, 207, 207, 207);
   var resultColor = Colors.grey.shade300.withOpacity(0.8);
   var eqColor = Colors.grey.shade100;
+  var buttonColor = Color.fromARGB(255, 32, 32, 32);
+  bool isDark = true;
+  int themeColorId = 1;
+  List<List<String>> history = [];
+  //////////////////
   double resultSize = 40;
   double eqSize = 50;
 
@@ -62,8 +69,9 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    read();
+    storeList(history);
     controller = TextEditingController();
-    // scrollController = ScrollController();
   }
 
   @override
@@ -73,6 +81,40 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
+  save() async {
+    print("Saving...");
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isDark', isDark);
+    prefs.setInt('themeColorId', themeColorId);
+    // prefs.setStringList('history', history);
+    storeList(history);
+  }
+
+  read() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDark = prefs.getBool('isDark') ?? true;
+      themeColorId = prefs.getInt('themeColorId') ?? 1;
+      history = retrieveList() as List<List<String>>;
+    });
+    // print('read: $derk');
+  }
+
+  Future<void> storeList(List<List<String>> myList) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // Store the list in shared preferences as a set of strings
+    List<String> stringList = myList.map((e) => "${e[0]},${e[1]}").toList();
+    await prefs.setStringList('myListKey', stringList);
+  }
+
+  Future<List<List<String>>> retrieveList() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // Retrieve the list from shared preferences and convert it back to the original format
+    List<String> stringList = prefs.getStringList('myListKey') ?? [];
+    List<List<String>> myList = stringList.map((e) => e.split(",")).toList();
+    return myList;
+  }
+
   @override
   Widget build(BuildContext context) {
     // final hei = MediaQuery.of(context).size.height; //screen height
@@ -80,10 +122,37 @@ class _HomeState extends State<Home> {
     const divider = Divider(height: 10, thickness: 0);
     var verticalDivider = VerticalDivider(width: (1 - 0.22 * 4) / 5 * wid);
     var verticalDivider2 = VerticalDivider(width: (1 - 0.22 * 4) / 10 * wid);
-    Color topBox = Color.fromARGB(255, 40, 40, 40);
+
+    try {
+      calculate(false);
+    } catch (e) {}
+
+    if (isDark) {
+      bgColor = Color.fromARGB(255, 23, 23, 23);
+      topBox = Color.fromARGB(255, 40, 40, 40);
+      resultColor = Colors.grey.shade200.withOpacity(0.8);
+      eqColor = Colors.grey.shade100;
+      buttonColor = Color.fromARGB(255, 32, 32, 32);
+    } else {
+      bgColor = Color.fromARGB(255, 232, 232, 232);
+      topBox = Color.fromARGB(255, 220, 220, 220);
+      resultColor = Colors.grey.shade700.withOpacity(0.8);
+      eqColor = Colors.grey.shade800;
+      buttonColor = Color.fromARGB(255, 223, 223, 223);
+    }
+
+    if (themeColorId == 1)
+      bTheme = Colors.lightGreen;
+    else if (themeColorId == 2)
+      bTheme = Colors.lightBlue;
+    else if (themeColorId == 3)
+      bTheme = Colors.red;
+    else
+      bTheme = Colors.orange;
+
     return Scaffold(
       //bottom button box
-      backgroundColor: Color.fromARGB(255, 23, 23, 23),
+      backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: topBox,
         elevation: 0,
@@ -93,11 +162,21 @@ class _HomeState extends State<Home> {
                 color: bTheme.shade300,
                 fontWeight: FontWeight.bold)),
         actions: [
+          IconButton(
+              padding: EdgeInsets.all(0),
+              onPressed: () {
+                showHistory(context);
+              },
+              icon: Icon(
+                Icons.history,
+                size: 35,
+                color: bTheme.shade300,
+              )),
           PopupMenuButton(
-            icon:
-                Icon(Icons.more_vert_rounded, color: bTheme.shade300, size: 30),
+            icon: Icon(Icons.more_vert_rounded,
+                color: isDark ? bTheme.shade300 : bTheme.shade500, size: 30),
             position: PopupMenuPosition.under,
-            color: bTheme.shade200,
+            color: isDark ? bTheme.shade200 : bTheme.shade300,
             elevation: 5,
             padding: EdgeInsets.all(10),
             shape: const RoundedRectangleBorder(
@@ -107,7 +186,7 @@ class _HomeState extends State<Home> {
                 value: 0,
                 textStyle: GoogleFonts.ubuntu(
                     fontSize: 22,
-                    color: Colors.grey.shade800,
+                    color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
                 child: const Text("Theme"),
               ),
@@ -115,7 +194,7 @@ class _HomeState extends State<Home> {
                 value: 1,
                 textStyle: GoogleFonts.ubuntu(
                     fontSize: 22,
-                    color: Colors.grey.shade800,
+                    color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
                 child: const Text("About Us"),
               ),
@@ -123,7 +202,7 @@ class _HomeState extends State<Home> {
                 value: 2,
                 textStyle: GoogleFonts.ubuntu(
                     fontSize: 22,
-                    color: Colors.grey.shade800,
+                    color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
                 child: const Text("Share App"),
               ),
@@ -131,7 +210,7 @@ class _HomeState extends State<Home> {
                 value: 3,
                 textStyle: GoogleFonts.ubuntu(
                     fontSize: 22,
-                    color: Colors.grey.shade800,
+                    color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
                 child: const Text("Rate Us"),
               ),
@@ -374,12 +453,22 @@ class _HomeState extends State<Home> {
           else if (tag == 'log') typeIt('㏒(');
           /////////////////
           if (answer != '') {
-            eqColor = Colors.grey.shade100;
-            resultColor = Colors.grey.shade300.withOpacity(0.8);
             eqSize = 50;
             resultSize = 40;
           }
         });
+
+        if (cursor == controller.text.length - 1)
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (scrollController.hasClients) {
+              var s = scrollController.position.maxScrollExtent;
+              print(" Scroll $s");
+              scrollController.animateTo(
+                  scrollController.position.maxScrollExtent,
+                  duration: Duration(milliseconds: 100),
+                  curve: Curves.easeInOut);
+            }
+          });
       },
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -395,10 +484,9 @@ class _HomeState extends State<Home> {
         ),
       ),
       style: ElevatedButton.styleFrom(
+          foregroundColor: isDark ? bTheme.shade300 : bTheme.shade600,
+          backgroundColor: Colors.transparent,
           fixedSize: Size(wid * 0.18, wid * 0.20 / 2.5),
-          onPrimary: bTheme.shade300,
-          // primary: bTheme.shade200.withOpacity(0.2),
-          primary: Colors.transparent,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(300),
@@ -409,18 +497,22 @@ class _HomeState extends State<Home> {
   ElevatedButton mainButton(String tag, double wid) {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
+            foregroundColor: (isOperator(tag) || tag == '='
+                ? isDark
+                    ? Colors.grey.shade900
+                    : Colors.grey.shade100
+                : isDark
+                    ? bTheme.shade300
+                    : bTheme.shade500),
+            backgroundColor: (isOperator(tag) || tag == '='
+                ? isDark
+                    ? bTheme.shade300.withOpacity(0.9)
+                    : bTheme.shade300.withOpacity(0.7)
+                : buttonColor),
             fixedSize: tag == "="
                 ? Size(wid * (0.22 * 2 + ((1 - 0.22 * 4) / 5)), wid * 0.22)
                 //width = width of 2 small mainButton + gap between them
                 : Size(wid * 0.22, wid * 0.22),
-            onPrimary: tag == "="
-                ? Colors.grey.shade800
-                : (isOperator(tag) ? Colors.grey.shade900 : bTheme.shade300),
-            primary: tag == "="
-                ? bTheme.shade300.withOpacity(0.9)
-                : (isOperator(tag)
-                    ? bTheme.shade300.withOpacity(0.9)
-                    : Color.fromARGB(255, 32, 32, 32)),
             //buttonColor
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(300),
@@ -445,7 +537,6 @@ class _HomeState extends State<Home> {
             ///////////////////////////
 
             if (answer != '') {
-              eqColor = Colors.grey.shade100;
               resultColor = Colors.grey.shade300.withOpacity(0.8);
               eqSize = 50;
               resultSize = 40;
@@ -465,22 +556,18 @@ class _HomeState extends State<Home> {
                 freezeCursor(cursor - value + 1);
               }
               //////////////////////
-
             } else if (tag == '=') {
               if (controller.text != '') {
-                calculate();
+                calculate(true);
                 cursor = controller.selection.baseOffset;
                 print('cursor >> $cursor');
               } else {
                 answer = '';
                 toastMsg("Type Some expression and try");
               }
-              eqColor = Colors.grey.shade300.withOpacity(0.8);
-              resultColor = Colors.grey.shade100;
               eqSize = 40;
               resultSize = 50;
               ////////////////
-
             } else if (tag == '()') {
               openBracket = strBfrCursor.split("(").length - 1;
               closingBracket = strBfrCursor.split(")").length - 1;
@@ -534,6 +621,7 @@ class _HomeState extends State<Home> {
               } else if ((strBfrCursor != '' &&
                   (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
                       strBfrCursor.endsWith(')') ||
+                      strBfrCursor.endsWith('!') ||
                       strBfrCursor.endsWith('e'))))
                 typeIt(tag);
               else
@@ -548,24 +636,30 @@ class _HomeState extends State<Home> {
             child: tag == 'D'
                 ? Icon(
                     Icons.backspace,
-                    color: Colors.grey.shade900,
+                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
                   )
                 : (tag == '×'
                     ? Icon(
                         Icons.close,
-                        color: Colors.grey.shade900,
+                        color: isDark
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade100,
                         size: wid * 0.08,
                       )
                     : (tag == '+'
                         ? Icon(
                             Icons.add,
-                            color: Colors.grey.shade900,
+                            color: isDark
+                                ? Colors.grey.shade900
+                                : Colors.grey.shade100,
                             size: wid * 0.08,
                           )
                         : (tag == '-'
                             ? Icon(
                                 Icons.horizontal_rule_rounded,
-                                color: Colors.grey.shade900,
+                                color: isDark
+                                    ? Colors.grey.shade900
+                                    : Colors.grey.shade100,
                                 size: wid * 0.08,
                               )
                             : FittedBox(
@@ -595,22 +689,54 @@ class _HomeState extends State<Home> {
       builder: (BuildContext context) {
         return AlertDialog(
           elevation: 40,
-          backgroundColor: Colors.grey.shade800,
+          backgroundColor: topBox,
           shape: const RoundedRectangleBorder(
               side: BorderSide(width: 3, color: Colors.white12),
               borderRadius: BorderRadius.all(Radius.circular(30.0))),
           title: Center(
-              child: Text(
-            "THEME",
-            style: GoogleFonts.abel(
-                color: Colors.grey.shade400,
-                fontSize: 40,
-                fontWeight: FontWeight.w900),
+              child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "THEME",
+                style: GoogleFonts.abel(
+                    color: Colors.grey.shade500,
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900),
+              ),
+              VerticalDivider(
+                width: 15,
+              ),
+              ClipRRect(
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+                child: ElevatedButton(
+                  onPressed: () {
+                    save();
+                    setState(() {
+                      isDark = !isDark;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: Icon(isDark
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.all(0),
+                    fixedSize: Size(70, 70),
+                    elevation: 30,
+                    backgroundColor: isDark
+                        ? Colors.grey.shade700.withOpacity(0.7)
+                        : Color.fromARGB(255, 200, 200, 200),
+                  ),
+                ),
+              )
+            ],
           )),
           contentPadding: EdgeInsets.all(0),
           titlePadding: EdgeInsets.only(top: 20, bottom: 10),
           insetPadding: EdgeInsets.all(0),
-          actionsPadding: EdgeInsets.all(5),
+          actionsPadding: EdgeInsets.all(10),
           actions: [
             FittedBox(
               child: Column(
@@ -652,7 +778,7 @@ class _HomeState extends State<Home> {
         width: wid * 0.35,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              primary: (color == "Green")
+              backgroundColor: (color == "Green")
                   ? Colors.lightGreen.shade300
                   : (color == "Blue")
                       ? Colors.lightBlue.shade200
@@ -673,15 +799,16 @@ class _HomeState extends State<Home> {
                             : Colors.orange.shade600),
           ),
           onPressed: () {
+            save();
             setState(() {
               if (color == "Green")
-                bTheme = Colors.lightGreen;
+                themeColorId = 1;
               else if (color == "Blue")
-                bTheme = Colors.lightBlue;
+                themeColorId = 2;
               else if (color == "Red")
-                bTheme = Colors.red;
+                themeColorId = 3;
               else
-                bTheme = Colors.orange;
+                themeColorId = 4;
             });
             Navigator.of(context).pop();
           },
@@ -690,7 +817,8 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void calculate() {
+  void calculate(bool pressed) {
+    if (controller.text == '') answer = '';
     String userInputToCalculate = controller.text;
     print("-----------------------------\nGiven => $userInputToCalculate");
     ////////////////////////////////
@@ -705,6 +833,7 @@ class _HomeState extends State<Home> {
       userInputToCalculate = userInputToCalculate.replaceAllMapped(
           RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
     } //when muultiple √√√ comes it gives correct brackets
+    if (userInputToCalculate.endsWith('e')) userInputToCalculate += '^1';
     openBracket = userInputToCalculate.split("(").length - 1;
     closingBracket = userInputToCalculate.split(")").length - 1;
     if (openBracket > closingBracket && userInputToCalculate != '(')
@@ -720,12 +849,11 @@ class _HomeState extends State<Home> {
     userInputToCalculate = userInputToCalculate.replaceAll('(*', '(');
     userInputToCalculate = userInputToCalculate.replaceAll(')(', ')*(');
 
-    //(* is created due to above line
+    //if * at begining delete it (created due to *sqrt)
     ////////////////////////////////
     if (userInputToCalculate.startsWith('*'))
       userInputToCalculate =
           userInputToCalculate.substring(1, userInputToCalculate.length);
-    if (userInputToCalculate.endsWith('e')) userInputToCalculate += '^1';
     ////////////////////////////////
     // log(5*3) => log(10, 5*3) //log(10,x) is thr syntax
     int logCount = userInputToCalculate.split("log").length - 1;
@@ -742,6 +870,15 @@ class _HomeState extends State<Home> {
     // makes (5)9 => (5)*9
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
         RegExp(r'\)(\d+)'), (match) => ')*${match.group(1)}');
+    // makes 5!9 => 5!*9
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r'\!(\d+)'), (match) => '!*${match.group(1)}');
+    // makes 5!(9 => 5!*(9
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r'\!(\()'), (match) => '!*${match.group(1)}');
+    // makes 5!9 => 5!*9
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r'\!(log)'), (match) => '!*${match.group(1)}');
     // e5 => e^1 *5
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
         RegExp(r'\e(\d+)'), (match) => 'e^1*${match.group(1)}');
@@ -760,18 +897,26 @@ class _HomeState extends State<Home> {
       print("eval $eval");
       setState(() {
         answer = eval.toString();
-
         answer = removeTrailingZeros(answer);
         if (!answer.contains('e')) answer = toExponentForm(answer);
         answer = removeExtraDecimals(answer);
         print("answer:  $answer");
-
+        if (pressed == false &&
+            (!isNum(answer[0]) || controller.text == answer))
+          setState(() {
+            answer = '';
+          });
         answer = answer == 'NaN' ? 'Keep it real' : answer;
         //Nan comes when sqrt(-ve)
       });
     } catch (e) {
       setState(() {
-        answer = controller.text == '' ? '0' : "Error";
+        answer = controller.text == '' ? '' : "Error";
+        print(eqSize);
+        if (answer == 'Error' && eqSize == 50)
+          setState(() {
+            answer = '';
+          });
       });
     }
   }
@@ -850,6 +995,90 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.grey.shade900,
         textColor: bTheme.shade300,
         fontSize: 19.0);
+  }
+
+  void showHistory(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      // clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      builder: (context) => Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: -15,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: Container(
+                color: Colors.white,
+                width: 60,
+                height: 7,
+              ),
+            ),
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.3,
+              maxChildSize: 0.8,
+              minChildSize: 0.2,
+              builder: (context, scrollController) => Stack(
+                children: [
+                  SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      children: [
+                        Container(
+                          color: Colors.grey,
+                          child: Center(
+                            child: Text(
+                                'My ConThis is a sample wiThis is a sample widget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. This is a sample widget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. This is a sample widget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. dget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. tent',
+                                style: GoogleFonts.roboto(
+                                    fontSize: 30, color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            child: ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+              child: Container(
+                alignment: Alignment.center,
+                color: topBox,
+                height: 50,
+                width: MediaQuery.of(context).size.width,
+                padding: EdgeInsets.all(0),
+                child: Text('History',
+                    style: GoogleFonts.openSans(
+                        fontSize: 25,
+                        color: bTheme.shade300,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String removeTrailingZeros(String value) {
