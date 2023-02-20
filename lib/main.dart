@@ -60,6 +60,7 @@ class _HomeState extends State<Home> {
   bool isDark = true;
   int themeColorId = 1;
   List<List<String>> history = [];
+  List<String> inputAnswer = [];
   //////////////////
   double resultSize = 40;
   double eqSize = 50;
@@ -559,6 +560,12 @@ class _HomeState extends State<Home> {
             } else if (tag == '=') {
               if (controller.text != '') {
                 calculate(true);
+                inputAnswer = [controller.text, answer];
+                // Create a list containing the two variables
+                history.add(inputAnswer);
+                // Create a list containing the combined list as a single element
+
+                save();
                 cursor = controller.selection.baseOffset;
                 print('cursor >> $cursor');
               } else {
@@ -1012,17 +1019,6 @@ class _HomeState extends State<Home> {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          Positioned(
-            top: -15,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: Container(
-                color: Colors.white,
-                width: 60,
-                height: 7,
-              ),
-            ),
-          ),
           ClipRRect(
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(30),
@@ -1034,21 +1030,59 @@ class _HomeState extends State<Home> {
               maxChildSize: 0.8,
               minChildSize: 0.2,
               builder: (context, scrollController) => Stack(
+                alignment: Alignment.topCenter,
+                clipBehavior: Clip.none,
                 children: [
+                  Positioned(
+                    top: 15,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        color: Colors.white,
+                        width: 60,
+                        height: 7,
+                      ),
+                    ),
+                  ),
                   SingleChildScrollView(
                     controller: scrollController,
-                    child: Column(
-                      children: [
-                        Container(
-                          color: Colors.grey,
-                          child: Center(
-                            child: Text(
-                                'My ConThis is a sample wiThis is a sample widget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. This is a sample widget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. This is a sample widget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. dget which shows a ListView that has 25 ListTiles. It starts out as taking up half the body of the Scaffold, and can be dragged up to the full height of the scaffold or down to 25% of the height of the scaffold. Upon reaching full height, the list contents will be scrolled up or down, until they reach the top of the list again and the user drags the sheet back down. tent',
-                                style: GoogleFonts.roboto(
-                                    fontSize: 30, color: Colors.white)),
+                    child: Container(
+                      color: topBox,
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(30),
+                              topRight: Radius.circular(30),
+                            ),
+                            child: Container(
+                              alignment: Alignment.bottomCenter,
+                              color: bgColor,
+                              height: 70,
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.all(0),
+                              child: Text('History',
+                                  style: GoogleFonts.nunito(
+                                      fontSize: 35,
+                                      color: bTheme.shade300,
+                                      fontWeight: FontWeight.bold)),
+                            ),
                           ),
-                        ),
-                      ],
+                          if (history != [])
+                            for (int i = history.length - 1; i >= 0; i--)
+                              historyListItem(i),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Container(
+                              child: Text(
+                                "End of History",
+                                style: GoogleFonts.ubuntuMono(
+                                    fontSize: 20, color: bTheme.shade300),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -1056,27 +1090,51 @@ class _HomeState extends State<Home> {
             ),
           ),
           Positioned(
-            top: 0,
+            top: 15,
             child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
+              borderRadius: BorderRadius.circular(30),
               child: Container(
-                alignment: Alignment.center,
-                color: topBox,
-                height: 50,
-                width: MediaQuery.of(context).size.width,
-                padding: EdgeInsets.all(0),
-                child: Text('History',
-                    style: GoogleFonts.openSans(
-                        fontSize: 25,
-                        color: bTheme.shade300,
-                        fontWeight: FontWeight.bold)),
+                color: Colors.white,
+                width: 50,
+                height: 9,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Padding historyListItem(int i) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, right: 5, left: 5),
+      child: Container(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              history[i][0],
+              style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  color: Colors.grey.shade500,
+                  fontWeight: FontWeight.w600),
+            ),
+            Text(
+              history[i][1],
+              style: GoogleFonts.nunito(
+                  fontSize: 25,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        decoration: BoxDecoration(
+          color: buttonColor,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        padding: EdgeInsets.all(15.0),
+        margin: EdgeInsets.all(5.0),
       ),
     );
   }
@@ -1147,5 +1205,5 @@ class _HomeState extends State<Home> {
   }
 
 /////////////////////////
-}///////THE END/////////
+} ///////THE END/////////
 ///////////////////////
