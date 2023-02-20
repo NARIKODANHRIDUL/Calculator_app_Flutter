@@ -71,8 +71,8 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     read();
-    storeList(history);
     controller = TextEditingController();
+    // save();//will be better than continuos save()
   }
 
   @override
@@ -96,7 +96,7 @@ class _HomeState extends State<Home> {
     setState(() {
       isDark = prefs.getBool('isDark') ?? true;
       themeColorId = prefs.getInt('themeColorId') ?? 1;
-      history = retrieveList() as List<List<String>>;
+      retrieveList();
     });
     // print('read: $derk');
   }
@@ -104,7 +104,8 @@ class _HomeState extends State<Home> {
   Future<void> storeList(List<List<String>> myList) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // Store the list in shared preferences as a set of strings
-    List<String> stringList = myList.map((e) => "${e[0]},${e[1]}").toList();
+    List<String> stringList =
+        myList.map((e) => "${e[0]},${e[1]},${e[2]}").toList();
     await prefs.setStringList('myListKey', stringList);
   }
 
@@ -113,6 +114,7 @@ class _HomeState extends State<Home> {
     // Retrieve the list from shared preferences and convert it back to the original format
     List<String> stringList = prefs.getStringList('myListKey') ?? [];
     List<List<String>> myList = stringList.map((e) => e.split(",")).toList();
+    history = myList;
     return myList;
   }
 
@@ -127,7 +129,7 @@ class _HomeState extends State<Home> {
     try {
       calculate(false);
     } catch (e) {}
-
+    save();
     if (isDark) {
       bgColor = Color.fromARGB(255, 23, 23, 23);
       topBox = Color.fromARGB(255, 40, 40, 40);
@@ -162,18 +164,22 @@ class _HomeState extends State<Home> {
                 fontSize: 25,
                 color: bTheme.shade300,
                 fontWeight: FontWeight.bold)),
+        // toolbarHeight: 60,
         actions: [
           IconButton(
               padding: EdgeInsets.all(0),
               onPressed: () {
                 showHistory(context);
               },
+              tooltip: "History",
+              splashRadius: 28,
               icon: Icon(
                 Icons.history,
                 size: 35,
                 color: bTheme.shade300,
               )),
           PopupMenuButton(
+            splashRadius: 28,
             icon: Icon(Icons.more_vert_rounded,
                 color: isDark ? bTheme.shade300 : bTheme.shade500, size: 30),
             position: PopupMenuPosition.under,
@@ -560,11 +566,11 @@ class _HomeState extends State<Home> {
             } else if (tag == '=') {
               if (controller.text != '') {
                 calculate(true);
-                inputAnswer = [controller.text, answer];
-                // Create a list containing the two variables
+                DateTime now = DateTime.now();
+                String formattedDate =
+                    '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
+                inputAnswer = [controller.text, answer, formattedDate];
                 history.add(inputAnswer);
-                // Create a list containing the combined list as a single element
-
                 save();
                 cursor = controller.selection.baseOffset;
                 print('cursor >> $cursor');
@@ -892,6 +898,12 @@ class _HomeState extends State<Home> {
     //e( => e^1 *(
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
         RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
+    // //sqrtlog => sqrt
+    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
+    //     RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
+    // //e( => e^1 *(
+    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
+    //     RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
 
     print("calculate => $userInputToCalculate");
     /////////////////////////////////
@@ -917,6 +929,8 @@ class _HomeState extends State<Home> {
         //Nan comes when sqrt(-ve)
       });
     } catch (e) {
+      print("Error in answer");
+
       setState(() {
         answer = controller.text == '' ? '' : "Error";
         print(eqSize);
@@ -1029,63 +1043,73 @@ class _HomeState extends State<Home> {
               initialChildSize: 0.3,
               maxChildSize: 0.8,
               minChildSize: 0.2,
-              builder: (context, scrollController) => Stack(
-                alignment: Alignment.topCenter,
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    top: 15,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        color: Colors.white,
-                        width: 60,
-                        height: 7,
+              builder: (context, scrollController) => Container(
+                color: bgColor,
+                child: Stack(
+                  alignment: Alignment.topCenter,
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      top: 15,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          color: Colors.white,
+                          width: 60,
+                          height: 7,
+                        ),
                       ),
                     ),
-                  ),
-                  SingleChildScrollView(
-                    controller: scrollController,
-                    child: Container(
-                      color: topBox,
-                      child: Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(30),
-                              topRight: Radius.circular(30),
-                            ),
-                            child: Container(
+                    SingleChildScrollView(
+                      controller: scrollController,
+                      child: Container(
+                        color: bgColor,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Container(
                               alignment: Alignment.bottomCenter,
-                              color: bgColor,
-                              height: 70,
+                              height: 80,
                               width: MediaQuery.of(context).size.width,
                               padding: EdgeInsets.all(0),
+                              decoration: BoxDecoration(
+                                color: buttonColor,
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      blurRadius: 7,
+                                      offset: Offset(1, 1),
+                                      spreadRadius: 1),
+                                ],
+                              ),
                               child: Text('History',
                                   style: GoogleFonts.nunito(
                                       fontSize: 35,
-                                      color: bTheme.shade300,
+                                      color: bTheme.shade400,
                                       fontWeight: FontWeight.bold)),
                             ),
-                          ),
-                          if (history != [])
-                            for (int i = history.length - 1; i >= 0; i--)
-                              historyListItem(i),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Container(
-                              child: Text(
-                                "End of History",
-                                style: GoogleFonts.ubuntuMono(
-                                    fontSize: 20, color: bTheme.shade300),
-                              ),
+                            Divider(
+                              height: 5,
                             ),
-                          )
-                        ],
+                            if (history != [])
+                              for (int i = history.length - 1; i >= 0; i--)
+                                historyListItem(i),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              child: Container(
+                                child: Text(
+                                  "End of History",
+                                  style: GoogleFonts.ubuntuMono(
+                                      fontSize: 20, color: bTheme.shade300),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -1107,9 +1131,21 @@ class _HomeState extends State<Home> {
 
   Padding historyListItem(int i) {
     return Padding(
-      padding: const EdgeInsets.only(top: 2, right: 5, left: 5),
-      child: Container(
-        width: double.infinity,
+      padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            controller.text = history[i][0];
+          });
+          Navigator.of(context).pop();
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonColor,
+          padding: EdgeInsets.all(15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1127,14 +1163,17 @@ class _HomeState extends State<Home> {
                   color: Colors.grey.shade600,
                   fontWeight: FontWeight.w700),
             ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                history[i][2],
+                style: GoogleFonts.nunito(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            )
           ],
         ),
-        decoration: BoxDecoration(
-          color: buttonColor,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        padding: EdgeInsets.all(15.0),
-        margin: EdgeInsets.all(5.0),
       ),
     );
   }
@@ -1202,6 +1241,36 @@ class _HomeState extends State<Home> {
       //       duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
       // });
     }
+  }
+
+  String getMonthName(int month) {
+    List<String> monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return monthNames[month - 1];
+  }
+
+  String getFormattedTime(int hour, int minute) {
+    String marker = (hour < 12) ? 'am' : 'pm';
+    if (hour == 0) {
+      hour = 12;
+    } else if (hour > 12) {
+      hour -= 12;
+    }
+    String formattedHour = hour.toString().padLeft(2, '0');
+    String formattedMinute = minute.toString().padLeft(2, '0');
+    return '$formattedHour:$formattedMinute$marker';
   }
 
 /////////////////////////
