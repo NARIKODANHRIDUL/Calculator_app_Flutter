@@ -723,151 +723,6 @@ class _HomeState extends State<Home> {
                               ))))));
   }
 
-  void deleteHistoryBox(double wid, BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          elevation: 40,
-          backgroundColor: topBox,
-          shape: const RoundedRectangleBorder(
-              side: BorderSide(width: 3, color: Colors.white12),
-              borderRadius: BorderRadius.all(Radius.circular(30.0))),
-          title: Center(
-            child: Container(
-              width: wid * 0.7,
-              padding: const EdgeInsets.only(bottom: 5),
-              decoration: BoxDecoration(
-                border: Border(
-                    bottom: BorderSide(
-                  color: Colors.pink,
-                  width: 0.5, // Underline thickness
-                )),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Text('Delete Confirmation',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.viga(
-                        fontSize: 23,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.blue)),
-              ),
-            ),
-          ),
-          insetPadding: const EdgeInsets.all(0),
-          content: Padding(
-            padding: const EdgeInsets.only(bottom: 0),
-            child: Container(
-              padding: const EdgeInsets.all(0),
-              child: Container(
-                width: wid * 0.7,
-                // height: 100,
-                child: Text('Clear history and memory ?',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.firaSans(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 24,
-                        color: Colors.red)),
-              ),
-            ),
-          ),
-          contentPadding: EdgeInsets.all(0),
-          titlePadding: EdgeInsets.only(top: 20, bottom: 10),
-          actionsPadding: EdgeInsets.all(10),
-          actions: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Row(children: [
-                Expanded(
-                  flex: 8,
-                  child: Container(
-                    height: 50,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.grey,
-                          backgroundColor: buttonColor,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50)),
-                          side: BorderSide(color: bTheme, width: 1.5),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            history = [];
-                          });
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        },
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  'Clear ',
-                                  style: GoogleFonts.viga(
-                                    fontSize: wid / 20,
-                                    fontWeight: FontWeight.w500,
-                                    color: bTheme,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.restore,
-                                  color: bTheme,
-                                  size: wid / 15,
-                                )
-                              ]),
-                        )),
-                  ),
-                ),
-                Divider(
-                  indent: 10,
-                ),
-                Expanded(
-                  flex: 9,
-                  child: Container(
-                    height: 50,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                          backgroundColor: buttonColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50)),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context, false);
-                        },
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  'CANCEL',
-                                  style: GoogleFonts.viga(
-                                    fontSize: wid / 20,
-                                    fontWeight: FontWeight.w500,
-                                    color: bTheme,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.cancel_outlined,
-                                  color: bTheme,
-                                  size: wid / 15,
-                                )
-                              ]),
-                        )),
-                  ),
-                ),
-              ]),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void showTheme(double wid, BuildContext context) {
     showDialog(
       context: context,
@@ -1271,9 +1126,7 @@ class _HomeState extends State<Home> {
                                     padding: EdgeInsets.only(right: 8),
                                     child: IconButton(
                                         onPressed: () {
-                                          deleteHistoryBox(
-                                              MediaQuery.of(context).size.width,
-                                              context);
+                                          deleteHistory(context);
                                         },
                                         icon: Icon(
                                           Icons.delete_forever_rounded,
@@ -1346,6 +1199,63 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<dynamic> deleteHistory(BuildContext context) {
+    return showModalBottomSheet(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      enableDrag: true,
+      backgroundColor: buttonColor,
+      context: context,
+      builder: (context) => Container(
+          padding: EdgeInsets.all(15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Do you want to clear the memory or history ?",
+                style: GoogleFonts.ubuntuMono(
+                    fontSize: 25, color: bTheme.shade300),
+              ),
+              Divider(
+                height: 10,
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      history = [];
+                    });
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.all(10),
+                      backgroundColor: topBox,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      )),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.delete_forever_rounded,
+                        size: 35,
+                        color: Colors.grey,
+                      ),
+                      VerticalDivider(
+                        width: 10,
+                      ),
+                      Text("Delete all history",
+                          style: GoogleFonts.ubuntuMono(
+                              fontSize: 25, color: Colors.grey)),
+                    ],
+                  ))
+            ],
+          )),
     );
   }
 
