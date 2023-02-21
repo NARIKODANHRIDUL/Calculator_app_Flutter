@@ -1093,7 +1093,7 @@ class _HomeState extends State<Home> {
             ),
             child: DraggableScrollableSheet(
               expand: false,
-              initialChildSize: 0.3,
+              initialChildSize: 0.4,
               maxChildSize: 0.8,
               minChildSize: 0.2,
               builder: (context, scrollController) => Container(
@@ -1115,7 +1115,7 @@ class _HomeState extends State<Home> {
                               width: MediaQuery.of(context).size.width,
                               padding: EdgeInsets.all(0),
                               decoration: BoxDecoration(
-                                color: buttonColor.withAlpha(200),
+                                color: buttonColor.withAlpha(150),
                                 boxShadow: [
                                   BoxShadow(
                                       color: Colors.black.withOpacity(0.3),
@@ -1141,7 +1141,8 @@ class _HomeState extends State<Home> {
                                     padding: EdgeInsets.only(right: 8),
                                     child: IconButton(
                                         onPressed: () {
-                                          deleteHistory(context);
+                                          //-1 reperesent its all . any whole number is given for deleting list item of that index
+                                          deleteHistory(context, -1);
                                         },
                                         icon: Icon(
                                           Icons.delete_forever_rounded,
@@ -1189,7 +1190,7 @@ class _HomeState extends State<Home> {
                 height: 40,
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
-                  color: buttonColor.withAlpha(200),
+                  color: buttonColor.withAlpha(150),
                   boxShadow: [
                     BoxShadow(
                         color: Colors.black.withOpacity(0.3),
@@ -1217,7 +1218,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<dynamic> deleteHistory(BuildContext context) {
+  Future<dynamic> deleteHistory(BuildContext context, int index) {
     return showModalBottomSheet(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -1230,14 +1231,21 @@ class _HomeState extends State<Home> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Divider(
-                height: 10,
+                height: 15,
               ),
-              Text(
-                "Do you want to clear the history or memory  ?",
-                style: GoogleFonts.nunito(fontSize: 21, color: bTheme.shade300),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  (index == -1)
+                      ? "Do you want to clear the history or memory ?"
+                      : "Remove this list item from the history list ?",
+                  textAlign: TextAlign.start,
+                  style: GoogleFonts.nunito(
+                      fontSize: 21, color: Colors.red.shade300),
+                ),
               ),
               Divider(
                 height: 10,
@@ -1245,10 +1253,14 @@ class _HomeState extends State<Home> {
               ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      history = [];
+                      if (index == -1)
+                        history = [];
+                      else
+                        history.removeAt(index);
                     });
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
+                    showHistory(context);
                   },
                   style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.all(15),
@@ -1261,14 +1273,21 @@ class _HomeState extends State<Home> {
                       Icon(
                         Icons.delete_forever_rounded,
                         size: 25,
-                        color: Colors.grey,
+                        color:
+                            (index == -1) ? Colors.red.shade300 : Colors.grey,
                       ),
                       VerticalDivider(
                         width: 10,
                       ),
-                      Text("Delete all history",
+                      Text(
+                          (index == -1)
+                              ? "Delete all history"
+                              : "Delete this item",
                           style: GoogleFonts.nunito(
-                              fontSize: 20, color: Colors.grey)),
+                              fontSize: 20,
+                              color: (index == -1)
+                                  ? Colors.red.shade300
+                                  : Colors.grey)),
                     ],
                   ))
             ],
@@ -1288,7 +1307,7 @@ class _HomeState extends State<Home> {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: buttonColor,
-          padding: EdgeInsets.all(15),
+          padding: EdgeInsets.only(top: 15, bottom: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -1296,27 +1315,54 @@ class _HomeState extends State<Home> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              history[i][0],
-              style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  color: Colors.grey.shade500,
-                  fontWeight: FontWeight.w600),
-            ),
-            Text(
-              history[i][1],
-              style: GoogleFonts.nunito(
-                  fontSize: 25,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w700),
-            ),
-            Align(
-              alignment: Alignment.bottomRight,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Text(
-                history[i][2],
+                history[i][0],
                 style: GoogleFonts.nunito(
-                  color: Colors.grey.shade600,
-                ),
+                    fontSize: 20,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Text(
+                history[i][1],
+                style: GoogleFonts.nunito(
+                    fontSize: 25,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w700),
+              ),
+            ),
+            Container(
+              // color: Colors.red,
+              alignment: Alignment.centerRight,
+              height: 25,
+              padding: EdgeInsets.all(0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    history[i][2],
+                    textAlign: TextAlign.end,
+                    style: GoogleFonts.nunito(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  IconButton(
+                      padding: EdgeInsets.all(0),
+                      // splashRadius: 25,
+                      onPressed: () {
+                        deleteHistory(context, i);
+                      },
+                      icon: Icon(
+                        Icons.delete_forever_rounded,
+                        size: 25,
+                        color: Colors.grey,
+                      )),
+                ],
               ),
             )
           ],
