@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +15,7 @@ Future<void> main() async {
     BuildContext context = binding.renderViewElement as BuildContext;
     await precacheImage(const AssetImage("images/neriquest.png"), context);
     Text("", style: GoogleFonts.ubuntuMono());
-    Text("", style: GoogleFonts.ubuntu());
+    Text("", style: GoogleFonts.nunito());
     binding.allowFirstFrame();
   });
   runApp(const MyApp());
@@ -173,6 +171,8 @@ class _HomeState extends State<Home> {
           IconButton(
               padding: EdgeInsets.all(0),
               onPressed: () {
+                // for resetting for (answer to input)
+                isEqual = 0;
                 showHistory(context);
               },
               tooltip: "History",
@@ -195,7 +195,7 @@ class _HomeState extends State<Home> {
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
                 value: 0,
-                textStyle: GoogleFonts.ubuntu(
+                textStyle: GoogleFonts.nunito(
                     fontSize: 22,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
@@ -203,7 +203,7 @@ class _HomeState extends State<Home> {
               ),
               PopupMenuItem(
                 value: 1,
-                textStyle: GoogleFonts.ubuntu(
+                textStyle: GoogleFonts.nunito(
                     fontSize: 22,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
@@ -211,7 +211,7 @@ class _HomeState extends State<Home> {
               ),
               PopupMenuItem(
                 value: 2,
-                textStyle: GoogleFonts.ubuntu(
+                textStyle: GoogleFonts.nunito(
                     fontSize: 22,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
@@ -219,7 +219,7 @@ class _HomeState extends State<Home> {
               ),
               PopupMenuItem(
                 value: 3,
-                textStyle: GoogleFonts.ubuntu(
+                textStyle: GoogleFonts.nunito(
                     fontSize: 22,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
                     fontWeight: FontWeight.w700),
@@ -262,177 +262,186 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-              child: Container(
-                color: topBox,
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Scrollbar(
-                          thumbVisibility: true,
-                          thickness: 1,
-                          child: TextField(
-                            scrollController: scrollController,
-                            maxLines: 1,
-                            textAlign: TextAlign.right,
-                            autofocus: true,
-                            style: GoogleFonts.ubuntuMono(
-                                fontSize: eqSize, color: eqColor),
-                            cursorColor: bTheme.shade300,
-                            textDirection: TextDirection.ltr,
-                            cursorRadius: Radius.circular(12),
-                            keyboardType: TextInputType.none,
-                            controller: controller,
-                            textInputAction: TextInputAction.previous,
-                            decoration: InputDecoration.collapsed(
-                              hintText: '',
-                            ),
-                          ),
-                        ),
-                        Scrollbar(
-                          thumbVisibility: true,
-                          thickness: 1,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: GestureDetector(
-                              onLongPress: () async {
-                                await Clipboard.setData(
-                                    ClipboardData(text: answer));
-                                toastMsg("$answer copied to Clipboard");
-                              },
-                              child: Text(
-                                answer,
-                                style: GoogleFonts.ubuntuMono(
-                                  color: answer == "Error"
-                                      ? Color.fromARGB(255, 252, 114, 63)
-                                      : answer == "Infinity" ||
-                                              answer == "-Infinity"
-                                          ? Color.fromARGB(255, 252, 114, 63)
-                                          : answer == "Keep it real"
-                                              ? Color.fromARGB(
-                                                  255, 252, 114, 63)
-                                              : resultColor,
-                                  fontSize: resultSize,
-                                ),
-                                textAlign: TextAlign.right,
+      body: GestureDetector(
+        onVerticalDragEnd: (DragEndDetails details) {
+          if (details.velocity.pixelsPerSecond.dy < 0) {
+            // for resetting for (answer to input)
+            isEqual = 0;
+            showHistory(context);
+          }
+        },
+        child: Column(
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+                child: Container(
+                  color: topBox,
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Scrollbar(
+                            thumbVisibility: true,
+                            thickness: 1,
+                            child: TextField(
+                              scrollController: scrollController,
+                              maxLines: 1,
+                              textAlign: TextAlign.right,
+                              autofocus: true,
+                              style: GoogleFonts.ubuntuMono(
+                                  fontSize: eqSize, color: eqColor),
+                              cursorColor: bTheme.shade300,
+                              textDirection: TextDirection.ltr,
+                              cursorRadius: Radius.circular(12),
+                              keyboardType: TextInputType.none,
+                              controller: controller,
+                              textInputAction: TextInputAction.previous,
+                              decoration: InputDecoration.collapsed(
+                                hintText: '',
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          Scrollbar(
+                            thumbVisibility: true,
+                            thickness: 1,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: GestureDetector(
+                                onLongPress: () async {
+                                  await Clipboard.setData(
+                                      ClipboardData(text: answer));
+                                  toastMsg("$answer copied to Clipboard");
+                                },
+                                child: Text(
+                                  answer,
+                                  style: GoogleFonts.ubuntuMono(
+                                    color: answer == "Error"
+                                        ? Color.fromARGB(255, 252, 114, 63)
+                                        : answer == "Infinity" ||
+                                                answer == "-Infinity"
+                                            ? Color.fromARGB(255, 252, 114, 63)
+                                            : answer == "Keep it real"
+                                                ? Color.fromARGB(
+                                                    255, 252, 114, 63)
+                                                : resultColor,
+                                    fontSize: resultSize,
+                                  ),
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                divider,
-                Row(
-                  children: [
-                    verticalDivider2,
-                    extraButton("√", wid),
-                    verticalDivider2,
-                    extraButton("^", wid),
-                    verticalDivider2,
-                    extraButton("!", wid),
-                    verticalDivider2,
-                    extraButton("e", wid),
-                    verticalDivider2,
-                    extraButton("log", wid),
-                    verticalDivider2,
-                  ],
-                ),
-                divider,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    mainButton("AC", wid),
-                    verticalDivider,
-                    mainButton("()", wid),
-                    verticalDivider,
-                    mainButton("÷", wid),
-                    verticalDivider,
-                    mainButton('×', wid),
-                  ],
-                ),
-                divider,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    mainButton("7", wid),
-                    verticalDivider,
-                    mainButton("8", wid),
-                    verticalDivider,
-                    mainButton("9", wid),
-                    verticalDivider,
-                    mainButton("-", wid),
-                  ],
-                ),
-                divider,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    mainButton("4", wid),
-                    verticalDivider,
-                    mainButton("5", wid),
-                    verticalDivider,
-                    mainButton("6", wid),
-                    verticalDivider,
-                    mainButton("+", wid),
-                  ],
-                ),
-                divider,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    mainButton("1", wid),
-                    verticalDivider,
-                    mainButton("2", wid),
-                    verticalDivider,
-                    mainButton("3", wid),
-                    verticalDivider,
-                    mainButton("D", wid),
-                  ],
-                ),
-                divider,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    mainButton(".", wid),
-                    verticalDivider,
-                    mainButton("0", wid),
-                    verticalDivider,
-                    mainButton("=", wid),
-                  ],
-                ),
-                divider,
-              ],
-            ),
-          )
-        ],
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  divider,
+                  Row(
+                    children: [
+                      verticalDivider2,
+                      extraButton("√", wid),
+                      verticalDivider2,
+                      extraButton("^", wid),
+                      verticalDivider2,
+                      extraButton("!", wid),
+                      verticalDivider2,
+                      extraButton("e", wid),
+                      verticalDivider2,
+                      extraButton("log", wid),
+                      verticalDivider2,
+                    ],
+                  ),
+                  divider,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      mainButton("AC", wid),
+                      verticalDivider,
+                      mainButton("()", wid),
+                      verticalDivider,
+                      mainButton("÷", wid),
+                      verticalDivider,
+                      mainButton('×', wid),
+                    ],
+                  ),
+                  divider,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      mainButton("7", wid),
+                      verticalDivider,
+                      mainButton("8", wid),
+                      verticalDivider,
+                      mainButton("9", wid),
+                      verticalDivider,
+                      mainButton("-", wid),
+                    ],
+                  ),
+                  divider,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      mainButton("4", wid),
+                      verticalDivider,
+                      mainButton("5", wid),
+                      verticalDivider,
+                      mainButton("6", wid),
+                      verticalDivider,
+                      mainButton("+", wid),
+                    ],
+                  ),
+                  divider,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      mainButton("1", wid),
+                      verticalDivider,
+                      mainButton("2", wid),
+                      verticalDivider,
+                      mainButton("3", wid),
+                      verticalDivider,
+                      mainButton("D", wid),
+                    ],
+                  ),
+                  divider,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      mainButton(".", wid),
+                      verticalDivider,
+                      mainButton("0", wid),
+                      verticalDivider,
+                      mainButton("=", wid),
+                    ],
+                  ),
+                  divider,
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -441,6 +450,7 @@ class _HomeState extends State<Home> {
     return ElevatedButton(
       onPressed: () {
         setState(() {
+          // for resetting for (answer to input)
           isEqual = 0;
           cursor = controller.selection.baseOffset;
           cursor = cursor == -1 ? controller.text.length : cursor;
@@ -535,6 +545,7 @@ class _HomeState extends State<Home> {
         onLongPress: () {
           if (tag == 'D') {
             setState(() {
+              // for resetting for (answer to input)
               isEqual = 0;
               cursor = controller.selection.baseOffset;
               cursor = cursor == -1 ? controller.text.length : cursor;
@@ -546,6 +557,7 @@ class _HomeState extends State<Home> {
         },
         onPressed: () {
           setState(() {
+            // for resetting for (answer to input)
             if (tag != '=') isEqual = 0;
             ///////////////////////////
             cursor = controller.selection.baseOffset;
@@ -943,18 +955,21 @@ class _HomeState extends State<Home> {
       print("eval $eval");
       setState(() {
         answer = eval.toString();
-        print(answer);
-        if (answer.contains('.')) {
-          // fixing floating point error by rounding last digit
-          int decimalLength = answer.substring(answer.indexOf('.') + 1).length;
-          print(decimalLength);
-          if (decimalLength >= 16) answer = roundDouble(eval, 15).toString();
-        }
 
+        // fixing floating point error by rounding last digit
+        if (answer.contains('.')) {
+          int decimalLength = answer.substring(answer.indexOf('.') + 1).length;
+          if (answer.contains('e'))
+            decimalLength = answer
+                .substring(answer.indexOf('.') + 1, answer.indexOf('e'))
+                .length;
+          if (decimalLength >= 16) answer = roundDouble(answer);
+        }
+        print("string answdasdaer = > " + answer);
         answer = removeTrailingZeros(answer);
         if (!answer.contains('e')) answer = toExponentForm(answer);
         answer = removeExtraDecimals(answer);
-        print("answer:  $answer");
+
         if ((pressed == false &&
                 !isNum(answer[answer.length - 1]) &&
                 eqSize == 50) ||
@@ -1120,7 +1135,7 @@ class _HomeState extends State<Home> {
                                   Text('History',
                                       style: GoogleFonts.nunito(
                                           fontSize: 35,
-                                          color: bTheme.shade400,
+                                          color: bTheme.shade300,
                                           fontWeight: FontWeight.bold)),
                                   Padding(
                                     padding: EdgeInsets.only(right: 8),
@@ -1205,7 +1220,7 @@ class _HomeState extends State<Home> {
   Future<dynamic> deleteHistory(BuildContext context) {
     return showModalBottomSheet(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       enableDrag: true,
       backgroundColor: buttonColor,
@@ -1217,10 +1232,12 @@ class _HomeState extends State<Home> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Divider(
+                height: 10,
+              ),
               Text(
-                "Do you want to clear the memory or history ?",
-                style: GoogleFonts.ubuntuMono(
-                    fontSize: 25, color: bTheme.shade300),
+                "Do you want to clear the history or memory  ?",
+                style: GoogleFonts.nunito(fontSize: 21, color: bTheme.shade300),
               ),
               Divider(
                 height: 10,
@@ -1234,7 +1251,7 @@ class _HomeState extends State<Home> {
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(10),
+                      padding: EdgeInsets.all(15),
                       backgroundColor: topBox,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -1243,15 +1260,15 @@ class _HomeState extends State<Home> {
                     children: [
                       Icon(
                         Icons.delete_forever_rounded,
-                        size: 35,
+                        size: 25,
                         color: Colors.grey,
                       ),
                       VerticalDivider(
                         width: 10,
                       ),
                       Text("Delete all history",
-                          style: GoogleFonts.ubuntuMono(
-                              fontSize: 25, color: Colors.grey)),
+                          style: GoogleFonts.nunito(
+                              fontSize: 20, color: Colors.grey)),
                     ],
                   ))
             ],
@@ -1308,9 +1325,12 @@ class _HomeState extends State<Home> {
     );
   }
 
-  double roundDouble(double value, int places) {
-    num mod = pow(10.0, places);
-    return ((value * mod).round().toDouble() / mod);
+  String roundDouble(String answer) {
+    int index15 = answer.indexOf('.') + 15;
+    int num16 = int.parse(answer[index15 + 1]);
+    double add = (num16 >= 5) ? 10e-16 : 0;
+    double a = double.parse(answer.substring(0, index15 + 1)) + add;
+    return (a.toString() + answer.substring(index15 + 2));
   }
 
   String removeTrailingZeros(String value) {
