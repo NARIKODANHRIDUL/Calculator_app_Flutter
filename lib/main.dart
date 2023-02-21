@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -64,6 +66,8 @@ class _HomeState extends State<Home> {
   //////////////////
   double resultSize = 40;
   double eqSize = 50;
+  int isEqual = 0;
+  String dummyInput = '';
 
   var bTheme = Colors.lightGreen;
 
@@ -180,8 +184,8 @@ class _HomeState extends State<Home> {
               )),
           PopupMenuButton(
             splashRadius: 28,
-            icon: Icon(Icons.more_vert_rounded,
-                color: isDark ? bTheme.shade300 : bTheme.shade500, size: 30),
+            icon:
+                Icon(Icons.more_vert_rounded, color: bTheme.shade300, size: 30),
             position: PopupMenuPosition.under,
             color: isDark ? bTheme.shade200 : bTheme.shade300,
             elevation: 5,
@@ -437,6 +441,7 @@ class _HomeState extends State<Home> {
     return ElevatedButton(
       onPressed: () {
         setState(() {
+          isEqual = 0;
           cursor = controller.selection.baseOffset;
           cursor = cursor == -1 ? controller.text.length : cursor;
           strBfrCursor = controller.text.substring(0, cursor);
@@ -455,9 +460,14 @@ class _HomeState extends State<Home> {
               (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
                   strBfrCursor.endsWith(')')))
             typeIt('!');
-          else if (tag == 'e')
+          else if (tag == 'e') if (strBfrCursor.endsWith("√"))
+            typeIt('(e');
+          else
             typeIt('e');
-          else if (tag == 'log') typeIt('㏒(');
+          else if (tag == 'log') if (strBfrCursor.endsWith("√"))
+            typeIt('(㏒(');
+          else
+            typeIt('㏒(');
           /////////////////
           if (answer != '') {
             eqSize = 50;
@@ -491,7 +501,7 @@ class _HomeState extends State<Home> {
         ),
       ),
       style: ElevatedButton.styleFrom(
-          foregroundColor: isDark ? bTheme.shade300 : bTheme.shade600,
+          foregroundColor: bTheme.shade300,
           backgroundColor: Colors.transparent,
           fixedSize: Size(wid * 0.18, wid * 0.20 / 2.5),
           elevation: 0,
@@ -508,9 +518,7 @@ class _HomeState extends State<Home> {
                 ? isDark
                     ? Colors.grey.shade900
                     : Colors.grey.shade100
-                : isDark
-                    ? bTheme.shade300
-                    : bTheme.shade500),
+                : bTheme.shade300),
             backgroundColor: (isOperator(tag) || tag == '='
                 ? isDark
                     ? bTheme.shade300.withOpacity(0.9)
@@ -527,6 +535,7 @@ class _HomeState extends State<Home> {
         onLongPress: () {
           if (tag == 'D') {
             setState(() {
+              isEqual = 0;
               cursor = controller.selection.baseOffset;
               cursor = cursor == -1 ? controller.text.length : cursor;
               strBfrCursor = controller.text.substring(0, cursor);
@@ -537,6 +546,7 @@ class _HomeState extends State<Home> {
         },
         onPressed: () {
           setState(() {
+            if (tag != '=') isEqual = 0;
             ///////////////////////////
             cursor = controller.selection.baseOffset;
             cursor = cursor == -1 ? controller.text.length : cursor;
@@ -544,7 +554,6 @@ class _HomeState extends State<Home> {
             ///////////////////////////
 
             if (answer != '') {
-              resultColor = Colors.grey.shade300.withOpacity(0.8);
               eqSize = 50;
               resultSize = 40;
             }
@@ -565,21 +574,33 @@ class _HomeState extends State<Home> {
               //////////////////////
             } else if (tag == '=') {
               if (controller.text != '') {
-                calculate(true);
-                DateTime now = DateTime.now();
-                String formattedDate =
-                    '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
-                inputAnswer = [controller.text, answer, formattedDate];
-                history.add(inputAnswer);
-                save();
+                isEqual += 1;
+                if (isEqual % 2 == 1) {
+                  if (isEqual > 2) controller.text = dummyInput;
+                  calculate(true);
+                  dummyInput = controller.text;
+                  eqSize = 40;
+                  resultSize = 50;
+                  if (answer != '') {
+                    DateTime now = DateTime.now();
+                    String formattedDate =
+                        '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
+                    inputAnswer = [controller.text, answer, formattedDate];
+                    history.add(inputAnswer);
+                    save();
+                  }
+                } else {
+                  controller.text = answer;
+                  eqSize = 50;
+                  resultSize = 40;
+                }
                 cursor = controller.selection.baseOffset;
                 print('cursor >> $cursor');
               } else {
                 answer = '';
                 toastMsg("Type Some expression and try");
               }
-              eqSize = 40;
-              resultSize = 50;
+
               ////////////////
             } else if (tag == '()') {
               openBracket = strBfrCursor.split("(").length - 1;
@@ -694,6 +715,150 @@ class _HomeState extends State<Home> {
                                   ),
                                 ),
                               ))))));
+  }
+
+  void deleteHistoryBox(double wid, BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          elevation: 40,
+          backgroundColor: topBox,
+          shape: const RoundedRectangleBorder(
+              side: BorderSide(width: 3, color: Colors.white12),
+              borderRadius: BorderRadius.all(Radius.circular(30.0))),
+          title: Center(
+            child: Container(
+              width: wid * 0.7,
+              padding: const EdgeInsets.only(bottom: 5),
+              decoration: BoxDecoration(
+                border: Border(
+                    bottom: BorderSide(
+                  color: Colors.pink,
+                  width: 0.5, // Underline thickness
+                )),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text('Delete Confirmation',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.viga(
+                        fontSize: 23,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.blue)),
+              ),
+            ),
+          ),
+          insetPadding: const EdgeInsets.all(0),
+          content: Padding(
+            padding: const EdgeInsets.only(bottom: 0),
+            child: Container(
+              padding: const EdgeInsets.all(0),
+              child: Container(
+                width: wid * 0.7,
+                // height: 100,
+                child: Text('Clear history and memory ?',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.firaSans(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 24,
+                        color: Colors.red)),
+              ),
+            ),
+          ),
+          contentPadding: EdgeInsets.all(0),
+          titlePadding: EdgeInsets.only(top: 20, bottom: 10),
+          actionsPadding: EdgeInsets.all(10),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(children: [
+                Expanded(
+                  flex: 8,
+                  child: Container(
+                    height: 50,
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.grey,
+                          backgroundColor: buttonColor,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50)),
+                          side: BorderSide(color: bTheme, width: 1.5),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            history = [];
+                          });
+                          Navigator.of(context).pop();
+                        },
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  'Clear ',
+                                  style: GoogleFonts.viga(
+                                    fontSize: wid / 20,
+                                    fontWeight: FontWeight.w500,
+                                    color: bTheme,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.restore,
+                                  color: bTheme,
+                                  size: wid / 15,
+                                )
+                              ]),
+                        )),
+                  ),
+                ),
+                Divider(
+                  indent: 10,
+                ),
+                Expanded(
+                  flex: 9,
+                  child: Container(
+                    height: 50,
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          backgroundColor: buttonColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50)),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context, false);
+                        },
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  'CANCEL',
+                                  style: GoogleFonts.viga(
+                                    fontSize: wid / 20,
+                                    fontWeight: FontWeight.w500,
+                                    color: bTheme,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.cancel_outlined,
+                                  color: bTheme,
+                                  size: wid / 15,
+                                )
+                              ]),
+                        )),
+                  ),
+                ),
+              ]),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void showTheme(double wid, BuildContext context) {
@@ -916,15 +1081,26 @@ class _HomeState extends State<Home> {
       print("eval $eval");
       setState(() {
         answer = eval.toString();
+        print(answer);
+        if (answer.contains('.')) {
+          // fixing floating point error by rounding last digit
+          int decimalLength = answer.substring(answer.indexOf('.') + 1).length;
+          print(decimalLength);
+          if (decimalLength >= 16) answer = roundDouble(eval, 15).toString();
+        }
+
         answer = removeTrailingZeros(answer);
         if (!answer.contains('e')) answer = toExponentForm(answer);
         answer = removeExtraDecimals(answer);
         print("answer:  $answer");
-        if (pressed == false &&
-            (!isNum(answer[0]) || controller.text == answer))
+        if ((pressed == false &&
+                !isNum(answer[answer.length - 1]) &&
+                eqSize == 50) ||
+            (controller.text == answer))
           setState(() {
             answer = '';
           });
+        print("answer2:  $answer");
         answer = answer == 'NaN' ? 'Keep it real' : answer;
         //Nan comes when sqrt(-ve)
       });
@@ -1049,17 +1225,6 @@ class _HomeState extends State<Home> {
                   alignment: Alignment.topCenter,
                   clipBehavior: Clip.none,
                   children: [
-                    Positioned(
-                      top: 15,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          color: Colors.white,
-                          width: 60,
-                          height: 7,
-                        ),
-                      ),
-                    ),
                     SingleChildScrollView(
                       controller: scrollController,
                       child: Container(
@@ -1073,7 +1238,7 @@ class _HomeState extends State<Home> {
                               width: MediaQuery.of(context).size.width,
                               padding: EdgeInsets.all(0),
                               decoration: BoxDecoration(
-                                color: buttonColor,
+                                color: buttonColor.withAlpha(200),
                                 boxShadow: [
                                   BoxShadow(
                                       color: Colors.black.withOpacity(0.3),
@@ -1082,11 +1247,35 @@ class _HomeState extends State<Home> {
                                       spreadRadius: 1),
                                 ],
                               ),
-                              child: Text('History',
-                                  style: GoogleFonts.nunito(
-                                      fontSize: 35,
-                                      color: bTheme.shade400,
-                                      fontWeight: FontWeight.bold)),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                    width: 50,
+                                  ),
+                                  Text('History',
+                                      style: GoogleFonts.nunito(
+                                          fontSize: 35,
+                                          color: bTheme.shade400,
+                                          fontWeight: FontWeight.bold)),
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 8),
+                                    child: IconButton(
+                                        onPressed: () {
+                                          deleteHistoryBox(
+                                              MediaQuery.of(context).size.width,
+                                              context);
+                                        },
+                                        icon: Icon(
+                                          Icons.delete_forever_rounded,
+                                          size: 35,
+                                          color: bTheme.shade300,
+                                        )),
+                                  )
+                                ],
+                              ),
                             ),
                             Divider(
                               height: 5,
@@ -1114,13 +1303,37 @@ class _HomeState extends State<Home> {
             ),
           ),
           Positioned(
+            top: -1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(15),
+                height: 40,
+                width: MediaQuery.of(context).size.width,
+                decoration: BoxDecoration(
+                  color: buttonColor.withAlpha(200),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 7,
+                        offset: Offset(1, 1),
+                        spreadRadius: 1),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
             top: 15,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(30),
               child: Container(
                 color: Colors.white,
                 width: 50,
-                height: 9,
+                height: 7,
               ),
             ),
           ),
@@ -1176,6 +1389,11 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  double roundDouble(double value, int places) {
+    num mod = pow(10.0, places);
+    return ((value * mod).round().toDouble() / mod);
   }
 
   String removeTrailingZeros(String value) {
