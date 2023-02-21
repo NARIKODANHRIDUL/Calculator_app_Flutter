@@ -582,12 +582,18 @@ class _HomeState extends State<Home> {
                   eqSize = 40;
                   resultSize = 50;
                   if (answer != '') {
-                    DateTime now = DateTime.now();
-                    String formattedDate =
-                        '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
-                    inputAnswer = [controller.text, answer, formattedDate];
-                    history.add(inputAnswer);
-                    save();
+                    if (history.isNotEmpty &&
+                        history.last[0] == controller.text)
+                      null;
+                    else {
+                      DateTime now = DateTime.now();
+                      String formattedDate =
+                          '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
+                      inputAnswer = [controller.text, answer, formattedDate];
+                      history.add(inputAnswer);
+                      // history.removeAt(2);
+                      save();
+                    }
                   }
                 } else {
                   controller.text = answer;
@@ -790,6 +796,7 @@ class _HomeState extends State<Home> {
                           setState(() {
                             history = [];
                           });
+                          Navigator.of(context).pop();
                           Navigator.of(context).pop();
                         },
                         child: FittedBox(
