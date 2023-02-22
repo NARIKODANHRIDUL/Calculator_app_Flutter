@@ -11,6 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
   binding.deferFirstFrame();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]); //for orientation lock
   binding.addPostFrameCallback((_) async {
     BuildContext context = binding.renderViewElement as BuildContext;
     await precacheImage(const AssetImage("images/neriquest.png"), context);
@@ -195,35 +199,47 @@ class _HomeState extends State<Home> {
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
                 value: 0,
-                textStyle: GoogleFonts.nunito(
-                    fontSize: 22,
+                child: Text(
+                  "Theme",
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
-                    fontWeight: FontWeight.w700),
-                child: const Text("Theme"),
+                  ),
+                ),
               ),
               PopupMenuItem(
                 value: 1,
-                textStyle: GoogleFonts.nunito(
-                    fontSize: 22,
+                child: Text(
+                  "About Us",
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
-                    fontWeight: FontWeight.w700),
-                child: const Text("About Us"),
+                  ),
+                ),
               ),
               PopupMenuItem(
                 value: 2,
-                textStyle: GoogleFonts.nunito(
-                    fontSize: 22,
+                child: Text(
+                  "Share App",
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
-                    fontWeight: FontWeight.w700),
-                child: const Text("Share App"),
+                  ),
+                ),
               ),
               PopupMenuItem(
                 value: 3,
-                textStyle: GoogleFonts.nunito(
-                    fontSize: 22,
+                child: Text(
+                  "Rate Us",
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
                     color: isDark ? Colors.grey.shade800 : Colors.white,
-                    fontWeight: FontWeight.w700),
-                child: const Text("Rate Us"),
+                  ),
+                ),
               ),
               PopupMenuItem(
                   value: 4,
@@ -393,7 +409,7 @@ class _HomeState extends State<Home> {
                       verticalDivider,
                       mainButton("9", wid),
                       verticalDivider,
-                      mainButton("-", wid),
+                      mainButton("–", wid),
                     ],
                   ),
                   divider,
@@ -634,7 +650,7 @@ class _HomeState extends State<Home> {
               else if (openBracket > closingBracket) typeIt(')');
 
               /////////////////////
-            } else if (tag == '-') {
+            } else if (tag == '–') {
               if (strBfrCursor.endsWith('–'))
                 toastMsg(
                     "Invalid Input"); //will not type - if there is already -
@@ -706,7 +722,7 @@ class _HomeState extends State<Home> {
                                 : Colors.grey.shade100,
                             size: wid * 0.08,
                           )
-                        : (tag == '-'
+                        : (tag == '–'
                             ? Icon(
                                 Icons.horizontal_rule_rounded,
                                 color: isDark
@@ -1001,7 +1017,7 @@ class _HomeState extends State<Home> {
         value == '()' ||
         value == '÷' ||
         value == '×' ||
-        value == '-' ||
+        value == '–' ||
         value == '+') {
       return true;
     } else {
@@ -1074,6 +1090,7 @@ class _HomeState extends State<Home> {
   void showHistory(BuildContext context) {
     showModalBottomSheet(
       context: context,
+
       isScrollControlled: true,
       // clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
@@ -1115,7 +1132,7 @@ class _HomeState extends State<Home> {
                               width: MediaQuery.of(context).size.width,
                               padding: EdgeInsets.all(0),
                               decoration: BoxDecoration(
-                                color: buttonColor.withAlpha(150),
+                                color: buttonColor.withAlpha(200),
                                 boxShadow: [
                                   BoxShadow(
                                       color: Colors.black.withOpacity(0.3),
@@ -1137,19 +1154,25 @@ class _HomeState extends State<Home> {
                                           fontSize: 35,
                                           color: bTheme.shade300,
                                           fontWeight: FontWeight.bold)),
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 8),
-                                    child: IconButton(
-                                        onPressed: () {
-                                          //-1 reperesent its all . any whole number is given for deleting list item of that index
-                                          deleteHistory(context, -1);
-                                        },
-                                        icon: Icon(
-                                          Icons.delete_forever_rounded,
-                                          size: 35,
-                                          color: bTheme.shade300,
-                                        )),
-                                  )
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        //-1 reperesent its all . any whole number is given for deleting list item of that index
+                                        deleteHistory(context, -1);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                          elevation: 0,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                          ),
+                                          backgroundColor: Colors.transparent,
+                                          fixedSize: Size(50, 50),
+                                          padding: EdgeInsets.all(0)),
+                                      child: Icon(
+                                        Icons.delete_forever_rounded,
+                                        size: 36,
+                                        color: bTheme.shade300,
+                                      ))
                                 ],
                               ),
                             ),
@@ -1190,7 +1213,7 @@ class _HomeState extends State<Home> {
                 height: 40,
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
-                  color: buttonColor.withAlpha(150),
+                  color: buttonColor.withAlpha(200),
                   boxShadow: [
                     BoxShadow(
                         color: Colors.black.withOpacity(0.3),
@@ -1240,11 +1263,11 @@ class _HomeState extends State<Home> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   (index == -1)
-                      ? "Do you want to clear the history or memory ?"
+                      ? "Do you want to clear the complete history or memory ?"
                       : "Remove this list item from the history list ?",
                   textAlign: TextAlign.start,
                   style: GoogleFonts.nunito(
-                      fontSize: 21, color: Colors.red.shade300),
+                      fontSize: 19, color: Colors.red.shade300),
                 ),
               ),
               Divider(
@@ -1313,6 +1336,7 @@ class _HomeState extends State<Home> {
           ),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
@@ -1335,35 +1359,31 @@ class _HomeState extends State<Home> {
                     fontWeight: FontWeight.w700),
               ),
             ),
-            Container(
-              // color: Colors.red,
-              alignment: Alignment.centerRight,
-              height: 25,
-              padding: EdgeInsets.all(0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    history[i][2],
-                    textAlign: TextAlign.end,
-                    style: GoogleFonts.nunito(
-                      color: Colors.grey.shade600,
-                    ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  history[i][2],
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.nunito(
+                    height: 3,
+                    color: Colors.grey.shade600,
                   ),
-                  IconButton(
-                      padding: EdgeInsets.all(0),
-                      // splashRadius: 25,
-                      onPressed: () {
-                        deleteHistory(context, i);
-                      },
-                      icon: Icon(
-                        Icons.delete_forever_rounded,
-                        size: 25,
-                        color: Colors.grey,
-                      )),
-                ],
-              ),
+                ),
+                IconButton(
+                    onPressed: () {
+                      deleteHistory(context, i);
+                    },
+                    icon: Icon(
+                      Icons.delete_forever_rounded,
+                      size: 35,
+                      color: Colors.grey,
+                    )),
+                VerticalDivider(
+                  width: 8,
+                )
+              ],
             )
           ],
         ),
