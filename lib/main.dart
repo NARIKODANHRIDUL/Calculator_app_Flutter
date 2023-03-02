@@ -16,6 +16,7 @@ Future<void> main() async {
     DeviceOrientation.portraitDown
   ]); //for orientation lock
   binding.addPostFrameCallback((_) async {
+    // nost sure but just trying to load fonts before starting
     BuildContext context = binding.renderViewElement as BuildContext;
     await precacheImage(const AssetImage("images/neriquest.png"), context);
     Text("", style: GoogleFonts.ubuntuMono());
@@ -93,8 +94,7 @@ class _HomeState extends State<Home> {
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool('isDark', isDark);
     prefs.setInt('themeColorId', themeColorId);
-    // prefs.setStringList('history', history);
-    storeList(history);
+    saveHistory(history);
   }
 
   read() async {
@@ -102,24 +102,24 @@ class _HomeState extends State<Home> {
     setState(() {
       isDark = prefs.getBool('isDark') ?? true;
       themeColorId = prefs.getInt('themeColorId') ?? 1;
-      retrieveList();
+      readHistory();
     });
     // print('read: $derk');
   }
 
-  Future<void> storeList(List<List<String>> myList) async {
+  Future<void> saveHistory(List<List<String>> myList) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // Store the list in shared preferences as a set of strings
     List<String> stringList =
-        myList.map((e) => "${e[0]},${e[1]},${e[2]}").toList();
+        myList.map((e) => "${e[0]};${e[1]};${e[2]}").toList();
     await prefs.setStringList('myListKey', stringList);
   }
 
-  Future<List<List<String>>> retrieveList() async {
+  Future<List<List<String>>> readHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // Retrieve the list from shared preferences and convert it back to the original format
     List<String> stringList = prefs.getStringList('myListKey') ?? [];
-    List<List<String>> myList = stringList.map((e) => e.split(",")).toList();
+    List<List<String>> myList = stringList.map((e) => e.split(";")).toList();
     history = myList;
     return myList;
   }
@@ -737,15 +737,20 @@ class _HomeState extends State<Home> {
                                       : EdgeInsets.all(0),
                                   child: Text(
                                     tag,
-                                    style: GoogleFonts.ubuntuMono(
-                                        fontSize: tag == '=' ||
-                                                tag == '÷' ||
-                                                tag == '.'
-                                            ? 50
-                                            : 40,
-                                        fontWeight: tag == '÷'
-                                            ? FontWeight.w200
-                                            : FontWeight.w500),
+                                    style: (tag == '÷')
+                                        ? GoogleFonts.notoSansMono(
+                                            fontSize: 44,
+                                            fontWeight: FontWeight.w300)
+                                        : GoogleFonts.ubuntuMono(
+                                            fontSize: tag == '=' || tag == '.'
+                                                ? 50
+                                                : tag == '()' || tag == 'AC'
+                                                    ? 35
+                                                    : 40,
+                                            fontWeight:
+                                                tag == '()' || tag == 'AC'
+                                                    ? FontWeight.w500
+                                                    : FontWeight.w500),
                                   ),
                                 ),
                               ))))));
@@ -975,11 +980,12 @@ class _HomeState extends State<Home> {
         // fixing floating point error by rounding last digit
         if (answer.contains('.')) {
           int decimalLength = answer.substring(answer.indexOf('.') + 1).length;
+          print(decimalLength);
           if (answer.contains('e'))
             decimalLength = answer
                 .substring(answer.indexOf('.') + 1, answer.indexOf('e'))
                 .length;
-          if (decimalLength >= 16) answer = roundDouble(answer);
+          if (decimalLength >= 16) answer = roundDouble(answer, decimalLength);
         }
         print("string answdasdaer = > " + answer);
         answer = removeTrailingZeros(answer);
@@ -1391,12 +1397,13 @@ class _HomeState extends State<Home> {
     );
   }
 
-  String roundDouble(String answer) {
-    int index15 = answer.indexOf('.') + 15;
-    int num16 = int.parse(answer[index15 + 1]);
-    double add = (num16 >= 5) ? 10e-16 : 0;
-    double a = double.parse(answer.substring(0, index15 + 1)) + add;
-    return (a.toString() + answer.substring(index15 + 2));
+  String roundDouble(String answer, int decimalLength) {
+    int index = answer.indexOf('.') + decimalLength;
+    int lastNum = int.parse(answer[index]);
+    String adder = "10e-$decimalLength";
+    double add = (lastNum >= 5) ? double.parse(adder) : 0;
+    double a = double.parse(answer.substring(0, index)) + add;
+    return (a.toString() + answer.substring(index + 1));
   }
 
   String removeTrailingZeros(String value) {
