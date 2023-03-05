@@ -56,6 +56,7 @@ class _HomeState extends State<Home> {
   int closingBracket = 0;
   String strBfrCursor = '';
   int cursor = 0;
+  String logx = "log₁₀";
 /////////////////
   Color bgColor = Color.fromARGB(255, 240, 240, 240);
   Color topBox = Color.fromARGB(255, 207, 207, 207);
@@ -933,6 +934,11 @@ class _HomeState extends State<Home> {
     for (int i = 0; i < logCount; i++) //when there is multiple log
       userInputToCalculate = userInputToCalculate.replaceAllMapped(
           RegExp(r"log\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
+    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
+    //     RegExp(r"log₂\(([^,]+)\)"), (match) => "log(2, ${match.group(1)})");
+    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
+    //     RegExp(r"log₁₀\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
+    // ₁₀ ₂
 
     //makes 8e => 8*e
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
