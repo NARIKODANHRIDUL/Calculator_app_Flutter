@@ -381,7 +381,7 @@ class _HomeState extends State<Home> {
                       verticalDivider2,
                       extraButton("e", wid),
                       verticalDivider2,
-                      extraButton("log", wid),
+                      extraButton(logx, wid),
                       verticalDivider2,
                     ],
                   ),
@@ -465,6 +465,17 @@ class _HomeState extends State<Home> {
 
   ElevatedButton extraButton(String tag, double wid) {
     return ElevatedButton(
+      onLongPress: () {
+        setState(() {
+          if (tag == "log₁₀") {
+            logx = "log₂";
+            toastMsg("Log to the base 2");
+          } else if (tag == "log₂") {
+            logx = "log₁₀";
+            toastMsg("Log to the base 10");
+          }
+        });
+      },
       onPressed: () {
         setState(() {
           // for resetting for (answer to input)
@@ -491,10 +502,16 @@ class _HomeState extends State<Home> {
             typeIt('(e');
           else
             typeIt('e');
-          else if (tag == 'log') if (strBfrCursor.endsWith("√"))
+          else if (tag == 'log₂') if (strBfrCursor.endsWith("√"))
+            typeIt('(㏒₂(');
+          else
+            typeIt("㏒₂(");
+          else if (tag == 'log₁₀') if (strBfrCursor.endsWith("√"))
             typeIt('(㏒(');
+          // typeIt('(㏒₁₀(');
           else
             typeIt('㏒(');
+          // typeIt('㏒₁₀(');
           /////////////////
           if (answer != '') {
             eqSize = 50;
@@ -520,10 +537,17 @@ class _HomeState extends State<Home> {
           padding: tag == '^'
               ? EdgeInsets.only(top: wid * 0.20 / 10)
               : EdgeInsets.all(0),
-          child: Text(
-            tag,
-            style: GoogleFonts.ubuntuMono(
-                fontSize: 30, fontWeight: FontWeight.w500),
+          child: Transform.scale(
+            scale: (tag == "log₁₀")
+                ? 1.5
+                : (tag == "log₂")
+                    ? 1.2
+                    : 1,
+            child: Text(
+              tag,
+              style: GoogleFonts.ubuntuMono(
+                  fontSize: 30, fontWeight: FontWeight.w500),
+            ),
           ),
         ),
       ),
@@ -593,7 +617,11 @@ class _HomeState extends State<Home> {
 
               //////////////////////
             } else if (tag == 'D') {
-              int value = strBfrCursor.endsWith('㏒(') ? 2 : 1;
+              int value = strBfrCursor.endsWith('㏒₂(')
+                  ? 3
+                  : strBfrCursor.endsWith('㏒(')
+                      ? 2
+                      : 1;
               if (controller.text != '') {
                 controller.text = controller.text
                         .substring(0, controller.selection.baseOffset - value) +
@@ -931,15 +959,18 @@ class _HomeState extends State<Home> {
     ////////////////////////////////
     // log(5*3) => log(10, 5*3) //log(10,x) is thr syntax
     int logCount = userInputToCalculate.split("log").length - 1;
-    for (int i = 0; i < logCount; i++) //when there is multiple log
+    for (int i = 0; i < logCount; i++) {
+      //when there is multiple log
       userInputToCalculate = userInputToCalculate.replaceAllMapped(
           RegExp(r"log\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
-    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
-    //     RegExp(r"log₂\(([^,]+)\)"), (match) => "log(2, ${match.group(1)})");
-    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
-    //     RegExp(r"log₁₀\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r"log₂\(([^,]+)\)"), (match) => "log(2, ${match.group(1)})");
+    }
     // ₁₀ ₂
 
+    //makes 8e => 8*e
+    userInputToCalculate = userInputToCalculate.replaceAllMapped(
+        RegExp(r"(\d)+log"), (match) => "${match.group(1)}*log");
     //makes 8e => 8*e
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
         RegExp(r"(\d)+e"), (match) => "${match.group(1)}*e");
