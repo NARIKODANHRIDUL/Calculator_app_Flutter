@@ -73,6 +73,7 @@ class _HomeState extends State<Home> {
   int isEqual = 0;
   String dummyInput = '';
 
+  String value = "Decimal";
   var bTheme = Colors.lightGreen;
 
   @override
@@ -125,6 +126,9 @@ class _HomeState extends State<Home> {
     return myList;
   }
 
+  String? selectedConverterItem;
+  List<String> converterItems = ['Binary', 'Item 2', 'Item 3'];
+
   @override
   Widget build(BuildContext context) {
     // final hei = MediaQuery.of(context).size.height; //screen height
@@ -173,6 +177,20 @@ class _HomeState extends State<Home> {
                 fontWeight: FontWeight.bold)),
         // toolbarHeight: 60,
         actions: [
+          IconButton(
+              padding: EdgeInsets.all(0),
+              onPressed: () {
+                // for resetting for (answer to input)
+                isEqual = 0;
+                showConverter(context);
+              },
+              tooltip: "Converter",
+              splashRadius: 28,
+              icon: Icon(
+                Icons.swap_horiz_rounded,
+                size: 35,
+                color: bTheme.shade300,
+              )),
           IconButton(
               padding: EdgeInsets.all(0),
               onPressed: () {
@@ -968,7 +986,7 @@ class _HomeState extends State<Home> {
     }
     // ₁₀ ₂
 
-    //makes 8e => 8*e
+    //makes 8log => 8*log
     userInputToCalculate = userInputToCalculate.replaceAllMapped(
         RegExp(r"(\d)+log"), (match) => "${match.group(1)}*log");
     //makes 8e => 8*e
@@ -1432,6 +1450,148 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  void showConverter(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        // isScrollControlled: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        builder: (context) {
+          return StatefulBuilder(builder: (BuildContext context,
+              StateSetter setState /*You can rename this!*/) {
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    clipBehavior: Clip.none,
+                    children: [
+                      SingleChildScrollView(
+                        controller: scrollController,
+                        child: Container(
+                          color: bgColor,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Container(
+                                alignment: Alignment.bottomCenter,
+                                height: 80,
+                                width: MediaQuery.of(context).size.width,
+                                padding: EdgeInsets.all(0),
+                                decoration: BoxDecoration(
+                                  color: buttonColor.withAlpha(200),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 7,
+                                        offset: Offset(1, 1),
+                                        spreadRadius: 1),
+                                  ],
+                                ),
+                                child: Text('Converter',
+                                    style: GoogleFonts.nunito(
+                                        fontSize: 35,
+                                        color: bTheme.shade300,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              Divider(
+                                height: 5,
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: bTheme,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: DropdownButton<String>(
+                                    borderRadius: BorderRadius.circular(20),
+                                    items: converterItems
+                                        .map((item) => DropdownMenuItem<String>(
+                                              value: item,
+                                              child: Text(item),
+                                            ))
+                                        .toList(),
+                                    hint: Text('Select an item'),
+                                    style: TextStyle(color: Colors.red),
+                                    underline: Container(),
+                                    value: selectedConverterItem,
+                                    onChanged: (item) {
+                                      setState(() {
+                                        selectedConverterItem = item;
+                                      });
+                                    }),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 15),
+                                child: Container(
+                                  child: Text(
+                                    "End of History",
+                                    style: GoogleFonts.ubuntuMono(
+                                        fontSize: 20, color: bTheme.shade300),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: -1,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.all(15),
+                      height: 40,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        color: buttonColor.withAlpha(200),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 7,
+                              offset: Offset(1, 1),
+                              spreadRadius: 1),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 15,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Container(
+                      color: Colors.white,
+                      width: 50,
+                      height: 7,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          });
+        });
   }
 
   String roundDouble(String answer, int decimalLength) {
