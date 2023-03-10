@@ -58,6 +58,12 @@ class _HomeState extends State<Home> {
   int closingBracket = 0;
   String strBfrCursor = '';
   int cursor = 0;
+  String converterStrBfrCursor = '';
+  int converterCursor = 0;
+  String binaryValue = '';
+  String octalValue = '';
+  String decimalValue = '';
+  String hexValue = '';
   String logx = "log₁₀";
 /////////////////
   Color bgColor = Color.fromARGB(255, 240, 240, 240);
@@ -77,7 +83,11 @@ class _HomeState extends State<Home> {
 
   String value = "Decimal";
   var bTheme = Colors.lightGreen;
-
+  static const divider = Divider(
+    height: 10,
+    thickness: 0,
+    color: Colors.transparent,
+  );
   @override
   void initState() {
     super.initState();
@@ -131,14 +141,16 @@ class _HomeState extends State<Home> {
   }
 
   String converterSelectedItem = 'Decimal';
-  List<String> converterItems = ['Decimal', 'Binary', 'Hexadecimal', 'Octal'];
+  String logxSelected = 'log₁₀';
+  List<String> converterItems = ['Binary', 'Octal', 'Decimal', 'Hexadecimal'];
   List<bool> converterToggleSwitchList = [true, false];
+  List<String> logxList = ['log₁₀', 'log₂', 'ln'];
 
   @override
   Widget build(BuildContext context) {
     // final hei = MediaQuery.of(context).size.height; //screen height
     final wid = MediaQuery.of(context).size.width; //screen width
-    const divider = Divider(height: 10, thickness: 0);
+
     var verticalDivider = VerticalDivider(width: (1 - 0.22 * 4) / 5 * wid);
     var verticalDivider2 = VerticalDivider(width: (1 - 0.22 * 4) / 10 * wid);
 
@@ -183,6 +195,53 @@ class _HomeState extends State<Home> {
                 fontWeight: FontWeight.bold)),
         // toolbarHeight: 60,
         actions: [
+          Center(
+            child: Container(
+              height: 40,
+              padding: EdgeInsets.only(left: 10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? bTheme.shade200.withOpacity(0.1)
+                    : bTheme.shade200.withOpacity(0.3),
+                border: Border.all(
+                  color: isDark
+                      ? bTheme.shade400.withOpacity(0.2)
+                      : bTheme.shade400.withOpacity(0.4),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: DropdownButton<String>(
+                  borderRadius: BorderRadius.circular(15),
+                  dropdownColor: buttonColor,
+                  elevation: 15,
+                  icon: Icon(Icons.keyboard_arrow_down_rounded),
+                  items: logxList
+                      .map((item) => DropdownMenuItem<String>(
+                            value: item,
+                            child: Text(
+                              item,
+                              style: GoogleFonts.nunito(
+                                  fontSize: 20, fontWeight: FontWeight.w500),
+                            ),
+                          ))
+                      .toList(),
+                  style: TextStyle(color: bTheme.shade300),
+                  underline: Container(),
+                  value: logxSelected,
+                  onChanged: (item) {
+                    setState(() {
+                      logxSelected = item ?? 'log₁₀';
+                      logx = item ?? 'log₁₀';
+                      if (item == "log₂")
+                        toastMsg("Log to the base 2");
+                      else if (item == "ln")
+                        toastMsg("Log(ln) to the base e");
+                      else if (item == "log₁₀") toastMsg("Log to the base 10");
+                    });
+                  }),
+            ),
+          ),
           IconButton(
               padding: EdgeInsets.all(0),
               onPressed: () {
@@ -216,7 +275,7 @@ class _HomeState extends State<Home> {
             icon:
                 Icon(Icons.more_vert_rounded, color: bTheme.shade300, size: 30),
             position: PopupMenuPosition.under,
-            color: isDark ? bTheme.shade200 : bTheme.shade300,
+            color: bTheme.shade200,
             elevation: 5,
             padding: EdgeInsets.all(10),
             shape: const RoundedRectangleBorder(
@@ -495,6 +554,9 @@ class _HomeState extends State<Home> {
             logx = "log₂";
             toastMsg("Log to the base 2");
           } else if (tag == "log₂") {
+            logx = "ln";
+            toastMsg("Log(ln) to the base e");
+          } else if (tag == "ln") {
             logx = "log₁₀";
             toastMsg("Log to the base 10");
           }
@@ -509,33 +571,43 @@ class _HomeState extends State<Home> {
           strBfrCursor = controller.text.substring(0, cursor);
           ////////////////
           if (tag == '√')
-            typeIt('√');
+            typeIt(controller, '√');
           else if (tag == '^' &&
               strBfrCursor != '' &&
               (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
                   strBfrCursor.endsWith(')') ||
                   strBfrCursor.endsWith('!') ||
                   strBfrCursor.endsWith('e')))
-            typeIt('^(');
+            typeIt(controller, '^(');
           else if (tag == '!' &&
               strBfrCursor != '' &&
               (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
                   strBfrCursor.endsWith(')')))
-            typeIt('!');
-          else if (tag == 'e') if (strBfrCursor.endsWith("√"))
-            typeIt('(e');
-          else
-            typeIt('e');
-          else if (tag == 'log₂') if (strBfrCursor.endsWith("√"))
-            typeIt('(㏒₂(');
-          else
-            typeIt("㏒₂(");
-          else if (tag == 'log₁₀') if (strBfrCursor.endsWith("√"))
-            typeIt('(㏒(');
-          // typeIt('(㏒₁₀(');
-          else
-            typeIt('㏒(');
-          // typeIt('㏒₁₀(');
+            typeIt(controller, '!');
+          else if (tag == 'e') {
+            if (strBfrCursor.endsWith("√"))
+              typeIt(controller, '(e');
+            else
+              typeIt(controller, 'e');
+          } else if (tag == 'log₂') {
+            if (strBfrCursor.endsWith("√"))
+              typeIt(controller, '(㏒₂(');
+            else
+              typeIt(controller, "㏒₂(");
+          } else if (tag == 'log₁₀') {
+            if (strBfrCursor.endsWith("√"))
+              typeIt(controller, '(㏒(');
+            // typeIt(controller,'(㏒₁₀(');
+            else
+              typeIt(controller, '㏒(');
+          } else if (tag == 'ln') {
+            if (strBfrCursor.endsWith("√"))
+              typeIt(controller, '(㏑(');
+            // typeIt(controller,'(㏒₁₀(');
+            else
+              typeIt(controller, '㏑(');
+          }
+          // typeIt(controller,'㏒₁₀(');
           /////////////////
           if (answer != '') {
             eqSize = 50;
@@ -543,17 +615,7 @@ class _HomeState extends State<Home> {
           }
         });
 
-        if (cursor == controller.text.length - 1)
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            if (scrollController.hasClients) {
-              var s = scrollController.position.maxScrollExtent;
-              print(" Scroll $s");
-              scrollController.animateTo(
-                  scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 100),
-                  curve: Curves.easeInOut);
-            }
-          });
+        scrollTheExpression(strBfrCursor);
       },
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -566,7 +628,9 @@ class _HomeState extends State<Home> {
                 ? 1.5
                 : (tag == "log₂")
                     ? 1.2
-                    : 1,
+                    : (tag == "ln")
+                        ? 0.8
+                        : 1,
             child: Text(
               tag,
               style: GoogleFonts.ubuntuMono(
@@ -616,7 +680,7 @@ class _HomeState extends State<Home> {
               cursor = cursor == -1 ? controller.text.length : cursor;
               strBfrCursor = controller.text.substring(0, cursor);
               controller.text = controller.text.substring(cursor);
-              freezeCursor(1);
+              freezeCursor(controller, 1);
             });
           }
         },
@@ -643,14 +707,14 @@ class _HomeState extends State<Home> {
             } else if (tag == 'D') {
               int value = strBfrCursor.endsWith('㏒₂(')
                   ? 3
-                  : strBfrCursor.endsWith('㏒(')
+                  : strBfrCursor.endsWith('㏒(') || strBfrCursor.endsWith('㏑(')
                       ? 2
                       : 1;
               if (controller.text != '') {
                 controller.text = controller.text
                         .substring(0, controller.selection.baseOffset - value) +
                     controller.text.substring(controller.selection.baseOffset);
-                freezeCursor(cursor - value + 1);
+                freezeCursor(controller, cursor - value + 1);
               }
               //////////////////////
             } else if (tag == '=') {
@@ -699,8 +763,8 @@ class _HomeState extends State<Home> {
                   strBfrCursor.endsWith("×") ||
                   strBfrCursor.endsWith("÷") ||
                   strBfrCursor.endsWith("("))
-                typeIt('(');
-              else if (openBracket > closingBracket) typeIt(')');
+                typeIt(controller, '(');
+              else if (openBracket > closingBracket) typeIt(controller, ')');
 
               /////////////////////
             } else if (tag == '–') {
@@ -713,10 +777,10 @@ class _HomeState extends State<Home> {
                 controller.text = controller.text
                         .substring(0, controller.selection.baseOffset - 1) +
                     controller.text.substring(controller.selection.baseOffset);
-                freezeCursor(cursor);
-                typeIt('–');
+                freezeCursor(controller, cursor);
+                typeIt(controller, '–');
               } else
-                typeIt('–');
+                typeIt(controller, '–');
               ///////////////////////
             } else if (isNum(tag) || tag == '.') {
               if (tag == '.' &&
@@ -725,7 +789,7 @@ class _HomeState extends State<Home> {
                       strBfrCursor.endsWith('.')))
                 toastMsg("Invalid Input");
               else
-                typeIt(tag);
+                typeIt(controller, tag);
               ///////////////////////
             } else {
               if (strBfrCursor != '–' &&
@@ -737,14 +801,14 @@ class _HomeState extends State<Home> {
                 controller.text = controller.text
                         .substring(0, controller.selection.baseOffset - 1) +
                     controller.text.substring(controller.selection.baseOffset);
-                freezeCursor(cursor);
-                typeIt(tag);
+                freezeCursor(controller, cursor);
+                typeIt(controller, tag);
               } else if ((strBfrCursor != '' &&
                   (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
                       strBfrCursor.endsWith(')') ||
                       strBfrCursor.endsWith('!') ||
                       strBfrCursor.endsWith('e'))))
-                typeIt(tag);
+                typeIt(controller, tag);
               else
                 toastMsg("Invalid Input");
             }
@@ -878,13 +942,13 @@ class _HomeState extends State<Home> {
                       themeButton(wid, "Blue", context),
                     ],
                   ),
-                  Divider(height: 10),
+                  divider,
                   Row(
                     children: [
                       themeButton(wid, "Red", context),
                       VerticalDivider(width: 10),
                       themeButton(wid, "Orange", context),
-                      Divider(height: 10),
+                      divider,
                     ],
                   ),
                 ],
@@ -971,6 +1035,7 @@ class _HomeState extends State<Home> {
     userInputToCalculate = userInputToCalculate.replaceAll('÷', '/');
     userInputToCalculate = userInputToCalculate.replaceAll('–', '-');
     userInputToCalculate = userInputToCalculate.replaceAll('㏒', 'log');
+    userInputToCalculate = userInputToCalculate.replaceAll('㏑', 'ln');
     userInputToCalculate = userInputToCalculate.replaceAll('√', '*sqrt');
     userInputToCalculate = userInputToCalculate.replaceAll('(*', '(');
     userInputToCalculate = userInputToCalculate.replaceAll(')(', ')*(');
@@ -1078,6 +1143,40 @@ class _HomeState extends State<Home> {
     }
   }
 
+  void convert(StateSetter setttState) {
+    setttState(() {
+      if (convertController.text == '') {
+        binaryValue = '';
+        decimalValue = '';
+        octalValue = '';
+        hexValue = '';
+      } else if (converterSelectedItem == 'Binary') {
+        int decimalNumber = int.parse(convertController.text, radix: 2);
+        octalValue = decimalNumber.toRadixString(8);
+        decimalValue = decimalNumber.toString();
+        hexValue = decimalNumber.toRadixString(16).toUpperCase();
+      } ////////////////////////////////
+      else if (converterSelectedItem == 'Octal') {
+        int octal = int.parse(convertController.text, radix: 8);
+        binaryValue = octal.toRadixString(2);
+        decimalValue = octal.toString();
+        hexValue = octal.toRadixString(16).toUpperCase();
+      } /////////////////////////////////
+      else if (converterSelectedItem == 'Decimal') {
+        int decimalNumber = int.parse(convertController.text);
+        binaryValue = decimalNumber.toRadixString(2);
+        octalValue = decimalNumber.toRadixString(8);
+        hexValue = decimalNumber.toRadixString(16).toUpperCase();
+      } //////////////////////////////////
+      else if (converterSelectedItem == 'Hexadecimal') {
+        int decimal = int.parse(convertController.text, radix: 16);
+        binaryValue = decimal.toRadixString(2);
+        octalValue = decimal.toRadixString(8);
+        decimalValue = decimal.toString().toUpperCase();
+      }
+    });
+  }
+
   bool isOperator(String value) {
     if (value == 'AC' ||
         value == 'D' ||
@@ -1117,14 +1216,14 @@ class _HomeState extends State<Home> {
     }
   }
 
-  void typeIt(String str) {
-    cursor = controller.selection.baseOffset;
-    cursor = cursor == -1 ? controller.text.length : cursor;
+  void typeIt(TextEditingController control, String str) {
+    cursor = control.selection.baseOffset;
+    cursor = cursor == -1 ? control.text.length : cursor;
     print("cursor = $cursor\n");
-    controller.text = controller.text.substring(0, cursor) +
+    control.text = control.text.substring(0, cursor) +
         str +
-        controller.text.substring(cursor);
-    controller.selection =
+        control.text.substring(cursor);
+    control.selection =
         TextSelection.fromPosition(TextPosition(offset: cursor + str.length));
   }
 
@@ -1136,8 +1235,8 @@ class _HomeState extends State<Home> {
     }
   }
 
-  void freezeCursor(int cursor) {
-    controller.selection = TextSelection.fromPosition(
+  void freezeCursor(TextEditingController control, int cursor) {
+    control.selection = TextSelection.fromPosition(
       TextPosition(offset: cursor - 1),
     );
   }
@@ -1149,7 +1248,7 @@ class _HomeState extends State<Home> {
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
         textColor: bTheme.shade300,
         fontSize: 19.0);
   }
@@ -1157,9 +1256,7 @@ class _HomeState extends State<Home> {
   void showHistory(BuildContext context) {
     showModalBottomSheet(
       context: context,
-
       isScrollControlled: true,
-      // clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30),
@@ -1245,6 +1342,8 @@ class _HomeState extends State<Home> {
                             ),
                             Divider(
                               height: 5,
+                              thickness: 0,
+                              color: Colors.transparent,
                             ),
                             if (history != [])
                               for (int i = history.length - 1; i >= 0; i--)
@@ -1325,6 +1424,8 @@ class _HomeState extends State<Home> {
             children: [
               Divider(
                 height: 15,
+                thickness: 0,
+                color: Colors.transparent,
               ),
               Align(
                 alignment: Alignment.centerLeft,
@@ -1337,9 +1438,7 @@ class _HomeState extends State<Home> {
                       fontSize: 19, color: Colors.red.shade300),
                 ),
               ),
-              Divider(
-                height: 10,
-              ),
+              divider,
               ElevatedButton(
                   onPressed: () {
                     setState(() {
@@ -1469,301 +1568,429 @@ class _HomeState extends State<Home> {
           ),
         ),
         builder: (context) {
-          return StatefulBuilder(builder: (BuildContext context,
-              StateSetter setttState /*You can rename this!*/) {
-            String hex = "ASd";
-            return GestureDetector(
-              onTap: () {
-                FocusScope.of(context).unfocus();
-              },
-              child: Padding(
-                padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.topCenter,
-                        clipBehavior: Clip.none,
-                        children: [
-                          SingleChildScrollView(
-                            //wihtout this sheet is coming up
-                            child: Container(
-                              color: bgColor,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Container(
-                                    alignment: Alignment.bottomCenter,
-                                    height: 80,
-                                    width: MediaQuery.of(context).size.width,
-                                    padding: EdgeInsets.all(0),
-                                    decoration: BoxDecoration(
-                                      color: buttonColor.withAlpha(200),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.3),
-                                            blurRadius: 7,
-                                            offset: Offset(1, 1),
-                                            spreadRadius: 1),
-                                      ],
-                                    ),
-                                    child: Text('Converter',
-                                        style: GoogleFonts.nunito(
-                                            fontSize: 35,
-                                            color: bTheme.shade300,
-                                            fontWeight: FontWeight.bold)),
+          return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setttState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.topCenter,
+                      clipBehavior: Clip.none,
+                      children: [
+                        SingleChildScrollView(
+                          //wihtout this sheet is coming up
+                          child: Container(
+                            color: bgColor,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Container(
+                                  alignment: Alignment.bottomCenter,
+                                  height: 80,
+                                  width: MediaQuery.of(context).size.width,
+                                  padding: EdgeInsets.all(0),
+                                  decoration: BoxDecoration(
+                                    color: buttonColor.withAlpha(255),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 7,
+                                          offset: Offset(1, 1),
+                                          spreadRadius: 1),
+                                    ],
                                   ),
-                                  Divider(
-                                    height: 10,
-                                  ),
-                                  // ToggleButtons(
-                                  //   isSelected: converterToggleSwitchList,
-                                  //   fillColor: bTheme.shade400.withOpacity(0.2),
-                                  //   color: bTheme.shade400.withOpacity(0.2),
-                                  //   borderRadius: BorderRadius.circular(20),
-                                  //   borderWidth: 2,
-                                  //   selectedBorderColor:
-                                  //       bTheme.shade200.withOpacity(0.2),
-                                  //   borderColor:
-                                  //       bTheme.shade200.withOpacity(0.2),
-                                  //   renderBorder: true,
-                                  //   onPressed: (index) {
-                                  //     setttState(() {
-                                  //       if (index == 0)
-                                  //         converterToggleSwitchList = [
-                                  //           true,
-                                  //           false
-                                  //         ];
-                                  //       else
-                                  //         converterToggleSwitchList = [
-                                  //           false,
-                                  //           true
-                                  //         ];
-                                  //     });
-                                  //   },
-                                  //   children: [
-                                  //     Padding(
-                                  //       padding: const EdgeInsets.symmetric(
-                                  //           vertical: 5, horizontal: 15),
-                                  //       child: Text(
-                                  //         "Decimal",
-                                  //         style: GoogleFonts.nunito(
-                                  //             fontSize: 25,
-                                  //             fontWeight: FontWeight.w500),
-                                  //       ),
-                                  //     ),
-                                  //     Padding(
-                                  //       padding: const EdgeInsets.symmetric(
-                                  //           vertical: 5, horizontal: 15),
-                                  //       child: Text(
-                                  //         "Length",
-                                  //         style: GoogleFonts.ubuntuMono(
-                                  //             fontSize: 25,
-                                  //             fontWeight: FontWeight.w500),
-                                  //       ),
-                                  //     )
-                                  //   ],
-                                  // ),
-                                  Divider(
-                                    height: 10,
-                                    thickness: 0,
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: bTheme.shade200.withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(24),
-                                      // border: Border.all(
-                                      //   color: bTheme,
-                                      //   width: 1,
-                                      // ),
-                                    ),
-                                    child: DropdownButton<String>(
-                                        borderRadius: BorderRadius.circular(20),
-                                        dropdownColor: buttonColor,
-                                        elevation: 15,
-                                        icon: Icon(
-                                            Icons.keyboard_arrow_down_rounded),
-                                        items: converterItems
-                                            .map((item) =>
-                                                DropdownMenuItem<String>(
-                                                  value: item,
-                                                  child: Text(
-                                                    item,
-                                                    style: GoogleFonts.nunito(
-                                                        fontSize: 30,
-                                                        fontWeight:
-                                                            FontWeight.w500),
-                                                  ),
-                                                ))
-                                            .toList(),
-                                        hint: Text(
-                                          'Select an item',
-                                          style: GoogleFonts.nunito(
-                                              fontSize: 30,
-                                              color: bTheme.shade300,
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                        style: TextStyle(color: bTheme),
-                                        underline: Container(),
-                                        value: converterSelectedItem,
-                                        onChanged: (item) {
-                                          setttState(() {
-                                            converterSelectedItem =
-                                                item ?? 'Decimal';
-                                          });
-                                        }),
-                                  ),
-
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 10),
-                                    child: TextField(
+                                  child: Text('Converter',
                                       style: GoogleFonts.nunito(
-                                          fontSize: 20,
-                                          color:
-                                              bTheme.shade200.withOpacity(0.5),
-                                          fontWeight: FontWeight.w500),
-                                      cursorColor: bTheme,
-                                      //  cursorHeight: 30,
-                                      // cursorRadius: Radius.circular(12),
-                                      // keyboardType: TextInputType.number,
-                                      inputFormatters: [],
-                                      controller: convertController,
-                                      autofocus: false,
-                                      maxLength: 10,
-                                      decoration: InputDecoration(
-                                          counterText: '',
-                                          counterStyle: TextStyle(
-                                              color: bTheme.withOpacity(0.5)),
-                                          //labelText: 'Minute',
-                                          label: Text(
-                                            converterSelectedItem,
-                                            style: GoogleFonts.nunito(
-                                                fontSize: 17),
-                                          ),
-                                          floatingLabelBehavior:
-                                              FloatingLabelBehavior.always,
-                                          labelStyle:
-                                              GoogleFonts.viga(color: bTheme),
-                                          // border: UnderlineInputBorder(borderSide: BorderSide(width: 2)),
+                                          fontSize: 35,
+                                          color: bTheme.shade300,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                // Divider(
+                                //   height: 10,
+                                // ),
+                                // ToggleButtons(
+                                //   isSelected: converterToggleSwitchList,
+                                //   fillColor: bTheme.shade400.withOpacity(0.2),
+                                //   color: bTheme.shade400.withOpacity(0.2),
+                                //   borderRadius: BorderRadius.circular(20),
+                                //   borderWidth: 2,
+                                //   selectedBorderColor:
+                                //       bTheme.shade200.withOpacity(0.2),
+                                //   borderColor:
+                                //       bTheme.shade200.withOpacity(0.2),
+                                //   renderBorder: true,
+                                //   onPressed: (index) {
+                                //     setttState(() {
+                                //       if (index == 0)
+                                //         converterToggleSwitchList = [
+                                //           true,
+                                //           false
+                                //         ];
+                                //       else
+                                //         converterToggleSwitchList = [
+                                //           false,
+                                //           true
+                                //         ];
+                                //     });
+                                //   },
+                                //   children: [
+                                //     Padding(
+                                //       padding: const EdgeInsets.symmetric(
+                                //           vertical: 5, horizontal: 15),
+                                //       child: Text(
+                                //         "Decimal",
+                                //         style: GoogleFonts.nunito(
+                                //             fontSize: 25,
+                                //             fontWeight: FontWeight.w500),
+                                //       ),
+                                //     ),
+                                //     Padding(
+                                //       padding: const EdgeInsets.symmetric(
+                                //           vertical: 5, horizontal: 15),
+                                //       child: Text(
+                                //         "Length",
+                                //         style: GoogleFonts.ubuntuMono(
+                                //             fontSize: 25,
+                                //             fontWeight: FontWeight.w500),
+                                //       ),
+                                //     )
+                                //   ],
+                                // ),
+                                divider,
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 15, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? bTheme.shade200.withOpacity(0.1)
+                                        : bTheme.shade200.withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(24),
 
-                                          enabledBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              borderSide:
-                                                  BorderSide(color: bTheme)),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              borderSide:
-                                                  BorderSide(color: bTheme)),
-                                          // fillColor: Colors.red,
-                                          hintText: "Type here...",
-                                          hintStyle: TextStyle(
-                                              color: buttonColor
-                                                  .withOpacity(0.5))),
+                                    // border: Border.all(
+                                    //   color: bTheme,
+                                    //   width: 1,
+                                    // ),
+                                  ),
+                                  child: DropdownButton<String>(
+                                      borderRadius: BorderRadius.circular(15),
+                                      dropdownColor: bTheme.shade100,
+                                      elevation: 15,
+                                      icon: Icon(
+                                          Icons.keyboard_arrow_down_rounded),
+                                      items: converterItems
+                                          .map((item) =>
+                                              DropdownMenuItem<String>(
+                                                value: item,
+                                                child: Text(
+                                                  item,
+                                                  style: GoogleFonts.nunito(
+                                                      fontSize: 30,
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                ),
+                                              ))
+                                          .toList(),
+                                      style: TextStyle(color: bTheme.shade300),
+                                      underline: Container(),
+                                      value: converterSelectedItem,
+                                      onChanged: (item) {
+                                        setttState(() {
+                                          convertController.text = '';
+                                          convert(setttState);
+                                          converterSelectedItem =
+                                              item ?? 'Decimal';
+                                        });
+                                      }),
+                                ),
+
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  child: TextField(
+                                    // scrollPadding: EdgeInsets.all(0),
+                                    style: GoogleFonts.nunito(
+                                        fontSize: 22,
+                                        color: isDark
+                                            ? bTheme.shade200.withOpacity(0.5)
+                                            : bTheme.shade300.withOpacity(1),
+                                        fontWeight: FontWeight.w500),
+                                    cursorColor: bTheme,
+                                    keyboardType: TextInputType.none,
+                                    // inputFormatters: [],
+                                    controller: convertController,
+                                    autofocus: true,
+                                    maxLines: 1,
+                                    textAlign: TextAlign.right,
+                                    textDirection: TextDirection.ltr,
+                                    cursorRadius: Radius.circular(12),
+                                    textInputAction: TextInputAction.previous,
+                                    // maxLength: 10,
+                                    decoration: InputDecoration(
+                                      counterText: '',
+                                      counterStyle: TextStyle(
+                                          color: bTheme.withOpacity(0.5)),
+                                      //labelText: 'Minute',
+                                      label: Text(
+                                        converterSelectedItem,
+                                        style: GoogleFonts.nunito(fontSize: 17),
+                                      ),
+                                      floatingLabelBehavior:
+                                          FloatingLabelBehavior.always,
+                                      labelStyle: GoogleFonts.viga(
+                                          color: bTheme.shade300),
+                                      // border: UnderlineInputBorder(borderSide: BorderSide(width: 2)),
+                                      enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          borderSide: BorderSide(
+                                              color: bTheme.shade300)),
+                                      focusedBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          borderSide: BorderSide(
+                                              color: bTheme.shade300)),
+                                      // fillColor: Colors.red,
+                                      // hintText: "Type here...",
+                                      // hintStyle: TextStyle(
+                                      //     color: bTheme.withOpacity(0.5))
                                     ),
                                   ),
+                                ),
 
-                                  if (converterSelectedItem == "Hexadecimal")
+                                Column(
+                                  children: [
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        hexButton(context, 'A'),
-                                        hexButton(context, 'B'),
-                                        hexButton(context, 'C'),
-                                        hexButton(context, 'D'),
-                                        hexButton(context, 'E'),
-                                        hexButton(context, 'F'),
+                                        hexButton(context, '0', setttState),
+                                        hexButton(context, '1', setttState),
+                                        if (converterSelectedItem == "Binary")
+                                          hexButton(context, 'AC', setttState),
+                                        if (converterSelectedItem == "Binary")
+                                          hexButton(context, 'DE', setttState),
+                                        if (converterSelectedItem != "Binary")
+                                          hexButton(context, '2', setttState),
+                                        if (converterSelectedItem != "Binary")
+                                          hexButton(context, '3', setttState),
+                                        if (converterSelectedItem != "Binary")
+                                          hexButton(context, '4', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal")
+                                          hexButton(context, '5', setttState),
                                       ],
                                     ),
-                                  Divider(
-                                    height: 10,
-                                  ),
-                                  for (int i = 0; i < 4; i++)
-                                    if (converterItems[i] !=
-                                        converterSelectedItem)
-                                      covnertedListItem(
-                                          converterItems[i], context),
-                                ],
-                              ),
+                                    Divider(
+                                      height: 5,
+                                      thickness: 0,
+                                      color: Colors.transparent,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        if (converterSelectedItem == "Octal")
+                                          hexButton(context, '5', setttState),
+                                        if (converterSelectedItem != "Binary")
+                                          hexButton(context, '6', setttState),
+                                        if (converterSelectedItem != "Binary")
+                                          hexButton(context, '7', setttState),
+                                        if (converterSelectedItem == "Octal")
+                                          hexButton(context, 'AC', setttState),
+                                        if (converterSelectedItem == "Octal")
+                                          hexButton(context, 'DE', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal")
+                                          hexButton(context, '8', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal")
+                                          hexButton(context, '9', setttState),
+                                        if (converterSelectedItem == "Decimal")
+                                          hexButton(context, 'AC', setttState),
+                                        if (converterSelectedItem == "Decimal")
+                                          hexButton(context, 'DE', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'A', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'B', setttState),
+                                      ],
+                                    ),
+                                    Divider(
+                                      height: 5,
+                                      thickness: 0,
+                                      color: Colors.transparent,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'C', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'D', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'E', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'F', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'AC', setttState),
+                                        if (converterSelectedItem != "Binary" &&
+                                            converterSelectedItem != "Octal" &&
+                                            converterSelectedItem != "Decimal")
+                                          hexButton(context, 'DE', setttState),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
+                                divider,
+                                for (int i = 0; i < 4; i++)
+                                  if (converterItems[i] !=
+                                      converterSelectedItem)
+                                    covnertedListItem(
+                                        converterItems[i], context),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      top: -1,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
                         ),
-                        child: Container(
-                          padding: EdgeInsets.all(15),
-                          height: 40,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            color: buttonColor.withAlpha(200),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 7,
-                                  offset: Offset(1, 1),
-                                  spreadRadius: 1),
-                            ],
-                          ),
-                        ),
-                      ),
+                      ],
                     ),
-                    Positioned(
-                      top: 15,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          color: Colors.white,
-                          width: 50,
-                          height: 7,
+                  ),
+                  Positioned(
+                    top: -1,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.all(15),
+                        height: 40,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          color: buttonColor.withAlpha(255),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 7,
+                                offset: Offset(1, 1),
+                                spreadRadius: 1),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Positioned(
+                    top: 15,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        color: Colors.white54,
+                        width: 40,
+                        height: 4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           });
         });
   }
 
-  Container hexButton(BuildContext context, String hex) {
+  Container hexButton(
+      BuildContext context, String hex, StateSetter setttState) {
     return Container(
       height: 50,
       width: 50,
       child: ElevatedButton(
+        onLongPress: () {
+          if (hex == 'DE') {
+            setttState(() {
+              converterCursor = convertController.selection.baseOffset;
+              converterCursor = converterCursor == -1
+                  ? convertController.text.length
+                  : converterCursor;
+              strBfrCursor =
+                  convertController.text.substring(0, converterCursor);
+              convertController.text =
+                  convertController.text.substring(converterCursor);
+              freezeCursor(convertController, 1);
+              convert(setttState);
+            });
+          }
+        },
         onPressed: () {
-          setState(() {
-            convertController.text = convertController.text + hex;
+          setttState(() {
+            converterCursor = convertController.selection.baseOffset;
+            converterCursor = converterCursor == -1
+                ? convertController.text.length
+                : converterCursor;
+            converterStrBfrCursor =
+                convertController.text.substring(0, converterCursor);
+
+            if (hex == "AC")
+              convertController.text = '';
+            else if (hex == 'DE') {
+              int value = 1;
+              if (convertController.text != '') {
+                convertController.text = convertController.text.substring(
+                        0, convertController.selection.baseOffset - value) +
+                    convertController.text
+                        .substring(convertController.selection.baseOffset);
+                freezeCursor(convertController, converterCursor - value + 1);
+              }
+            } else
+              typeIt(convertController, hex);
+            convert(setttState);
           });
         },
-        child: Text(hex),
+        child: (hex == "DE")
+            ? Icon(
+                Icons.backspace_rounded,
+                color: topBox,
+              )
+            : Text(
+                hex,
+                style: GoogleFonts.nunito(
+                    fontSize: 22, color: topBox, fontWeight: FontWeight.w500),
+              ),
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.all(0),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          backgroundColor: bTheme.shade300.withOpacity(0.3),
-          elevation: 15,
+          backgroundColor: (hex == 'DE' || hex == 'AC')
+              ? bTheme.shade100.withOpacity(0.4)
+              : bTheme.shade300.withOpacity(0.8),
+          // elevation: 15,
         ),
       ),
     );
@@ -1775,38 +2002,77 @@ class _HomeState extends State<Home> {
       child: Container(
         padding: EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: bTheme.shade100.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(10),
+          color: isDark
+              ? bTheme.shade200.withOpacity(0.05)
+              : bTheme.shade200.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(15),
         ),
         child: ListTile(
           contentPadding: EdgeInsets.symmetric(horizontal: 3),
           leading: Text(
-            numberSystem == converterItems[0]
-                ? "Decimal:"
-                : numberSystem == converterItems[2]
-                    ? "Hex    :"
-                    : numberSystem == converterItems[1]
-                        ? "Binary :"
-                        : "Octal  :",
+            numberSystem == "Decimal"
+                ? "DEC :"
+                : numberSystem == "Hexadecimal"
+                    ? "HEX :"
+                    : numberSystem == "Binary"
+                        ? "BIN :"
+                        : "OCT :",
             style: GoogleFonts.notoSansMono(
                 fontSize: 20,
                 color: bTheme.shade300,
                 fontWeight: FontWeight.w500),
           ),
+          title: Container(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  Text(
+                    numberSystem == "Decimal"
+                        ? decimalValue
+                        : numberSystem == "Hexadecimal"
+                            ? hexValue
+                            : numberSystem == "Binary"
+                                ? binaryValue
+                                : octalValue,
+                    style: GoogleFonts.notoSansMono(
+                        fontSize: 20,
+                        color: isDark
+                            ? bTheme.shade100.withOpacity(0.5)
+                            : bTheme.shade400.withOpacity(1),
+                        fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+          ),
           trailing: Container(
             height: 50,
             width: 50,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(
+                  text: numberSystem == "Decimal"
+                      ? decimalValue
+                      : numberSystem == "Hexadecimal"
+                          ? hexValue
+                          : numberSystem == "Binary"
+                              ? binaryValue
+                              : octalValue,
+                ));
+                (convertController.text != '')
+                    ? toastMsg('Copied to the clipboard')
+                    : toastMsg('Nothing to copy');
               },
-              child: Icon(Icons.copy),
+              child: Icon(Icons.copy, color: Colors.grey.shade800),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.all(0),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
-                backgroundColor: bTheme.shade300.withOpacity(0.3),
-                elevation: 15,
+                backgroundColor: bTheme.shade200.withOpacity(0.4),
+                side: BorderSide(
+                    width: 1, color: bTheme.shade300.withOpacity(0.6)),
+                elevation: 10,
               ),
             ),
           ),
@@ -1865,13 +2131,10 @@ class _HomeState extends State<Home> {
   int a = 1;
   void scrollTheExpression(String strBfrCursor) {
     bool b = (controller.text.length >= a) ? true : false;
-
     if (scrollController.position.maxScrollExtent != 0 && b) {
       a = controller.text.length;
       b = false;
     }
-    if (strBfrCursor.length >= a) {}
-
     if (cursor == controller.text.length - 1)
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (scrollController.hasClients) {
@@ -1881,12 +2144,6 @@ class _HomeState extends State<Home> {
               duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
         }
       });
-    else {
-      // SchedulerBinding.instance.addPostFrameCallback((_) {
-      //   scrollController.animateTo(20.272727272727252,
-      //       duration: Duration(milliseconds: 100), curve: Curves.easeInOut);
-      // });
-    }
   }
 
   String getMonthName(int month) {
