@@ -553,12 +553,15 @@ class _HomeState extends State<Home> {
           if (tag == "log₁₀") {
             logx = "log₂";
             toastMsg("Log to the base 2");
+            logxSelected = "log₂";
           } else if (tag == "log₂") {
             logx = "ln";
             toastMsg("Log(ln) to the base e");
+            logxSelected = "ln";
           } else if (tag == "ln") {
             logx = "log₁₀";
             toastMsg("Log to the base 10");
+            logxSelected = "log₁₀";
           }
         });
       },
