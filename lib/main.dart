@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -354,7 +357,6 @@ class _HomeState extends State<Home> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => about(isDark: isDark)));
-                
               } else if (value == 2)
                 Share.share(
                     "Check out Chess Timer App in Google PlayStore  https://play.google.com/store/apps/details?id=neriquest.chesstimer");
@@ -657,227 +659,255 @@ class _HomeState extends State<Home> {
     );
   }
 
-  ElevatedButton mainButton(String tag, double wid) {
-    return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            foregroundColor: (isOperator(tag) || tag == '='
-                ? isDark
-                    ? Colors.grey.shade900
-                    : Colors.grey.shade100
-                : bTheme.shade300),
-            backgroundColor: (isOperator(tag) || tag == '='
-                ? isDark
-                    ? bTheme.shade300.withOpacity(0.9)
-                    : bTheme.shade300.withOpacity(0.7)
-                : buttonColor),
-            fixedSize: tag == "="
-                ? Size(wid * (0.22 * 2 + ((1 - 0.22 * 4) / 5)), wid * 0.22)
-                //width = width of 2 small mainButton + gap between them
-                : Size(wid * 0.22, wid * 0.22),
-            //buttonColor
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(300),
-            )),
+  StatefulBuilder mainButton(String tag, double wid) {
+    double borderRad = 300;
+    return StatefulBuilder(builder: (context, setState) {
+      return GestureDetector(
         onLongPress: () {
-          if (tag == 'D') {
-            setState(() {
-              // for resetting for (answer to input)
-              isEqual = 0;
-              cursor = controller.selection.baseOffset;
-              cursor = cursor == -1 ? controller.text.length : cursor;
-              strBfrCursor = controller.text.substring(0, cursor);
-              controller.text = controller.text.substring(cursor);
-              freezeCursor(controller, 1);
-            });
-          }
-        },
-        onPressed: () {
-          setState(() {
-            // for resetting for (answer to input)
-            if (tag != '=') isEqual = 0;
-            ///////////////////////////
-            cursor = controller.selection.baseOffset;
-            cursor = cursor == -1 ? controller.text.length : cursor;
-            strBfrCursor = controller.text.substring(0, cursor);
-            ///////////////////////////
-
-            if (answer != '') {
-              eqSize = 50;
-              resultSize = 40;
-            }
-
-            if (tag == 'AC') {
-              controller.text = '';
-              answer = '';
-
-              //////////////////////
-            } else if (tag == 'D') {
-              int value = strBfrCursor.endsWith('㏒₂(')
-                  ? 3
-                  : strBfrCursor.endsWith('㏒(') || strBfrCursor.endsWith('㏑(')
-                      ? 2
-                      : 1;
-              if (controller.text != '') {
-                controller.text = controller.text
-                        .substring(0, controller.selection.baseOffset - value) +
-                    controller.text.substring(controller.selection.baseOffset);
-                freezeCursor(controller, cursor - value + 1);
+              if (tag == 'D') {
+                setState(() {
+                  // for resetting for (answer to input)
+                  isEqual = 0;
+                  cursor = controller.selection.baseOffset;
+                  cursor = cursor == -1 ? controller.text.length : cursor;
+                  strBfrCursor = controller.text.substring(0, cursor);
+                  controller.text = controller.text.substring(cursor);
+                  freezeCursor(controller, 1);
+                });
               }
-              //////////////////////
-            } else if (tag == '=') {
-              if (controller.text != '') {
-                isEqual += 1;
-                if (isEqual % 2 == 1) {
-                  if (isEqual > 2) controller.text = dummyInput;
-                  calculate(true);
-                  dummyInput = controller.text;
-                  eqSize = 40;
-                  resultSize = 50;
-                  if (answer != '') {
-                    if (history.isNotEmpty &&
-                        history.last[0] == controller.text)
-                      null;
-                    else {
-                      DateTime now = DateTime.now();
-                      String formattedDate =
-                          '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
-                      inputAnswer = [controller.text, answer, formattedDate];
-                      history.add(inputAnswer);
-                      // history.removeAt(2);
-                      save();
-                    }
-                  }
-                } else {
-                  controller.text = answer;
+              setState(() {
+                borderRad = 30;
+              });
+            },
+            onLongPressEnd: (details) {
+          setState(() {
+            borderRad = 300;
+          });
+        },
+        child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                foregroundColor: (isOperator(tag) || tag == '='
+                    ? isDark
+                        ? Colors.grey.shade900
+                        : Colors.grey.shade100
+                    : bTheme.shade300),
+                backgroundColor: (isOperator(tag) || tag == '='
+                    ? isDark
+                        // ? bTheme.shade300.withOpacity(0.9)
+                        ? bTheme.shade300.withAlpha(200)
+                        : bTheme.shade300.withOpacity(0.7)
+                    : buttonColor),
+                fixedSize: tag == "="
+                    ? Size(wid * (0.22 * 2 + ((1 - 0.22 * 4) / 5)), wid * 0.22)
+                    //width = width of 2 small mainButton + gap between them
+                    : Size(wid * 0.22, wid * 0.22),
+                //buttonColor
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(borderRad),
+                )),
+            
+            onPressed: () {
+              setState(() {
+                // for resetting for (answer to input)
+                if (tag != '=') isEqual = 0;
+                ///////////////////////////
+                cursor = controller.selection.baseOffset;
+                cursor = cursor == -1 ? controller.text.length : cursor;
+                strBfrCursor = controller.text.substring(0, cursor);
+                ///////////////////////////
+      
+                if (answer != '') {
                   eqSize = 50;
                   resultSize = 40;
                 }
-                cursor = controller.selection.baseOffset;
-                print('cursor >> $cursor');
-              } else {
-                answer = '';
-                toastMsg("Type Some expression and try");
-              }
-
-              ////////////////
-            } else if (tag == '()') {
-              openBracket = strBfrCursor.split("(").length - 1;
-              closingBracket = strBfrCursor.split(")").length - 1;
-
-              if (openBracket == closingBracket ||
-                  strBfrCursor.endsWith('+') ||
-                  strBfrCursor.endsWith("–") ||
-                  strBfrCursor.endsWith("×") ||
-                  strBfrCursor.endsWith("÷") ||
-                  strBfrCursor.endsWith("("))
-                typeIt(controller, '(');
-              else if (openBracket > closingBracket) typeIt(controller, ')');
-
-              /////////////////////
-            } else if (tag == '–') {
-              if (strBfrCursor.endsWith('–'))
-                toastMsg(
-                    "Invalid Input"); //will not type - if there is already -
-              else if (strBfrCursor.endsWith('÷') ||
-                  strBfrCursor.endsWith('×') ||
-                  strBfrCursor.endsWith('+')) {
-                controller.text = controller.text
-                        .substring(0, controller.selection.baseOffset - 1) +
-                    controller.text.substring(controller.selection.baseOffset);
-                freezeCursor(controller, cursor);
-                typeIt(controller, '–');
-              } else
-                typeIt(controller, '–');
-              ///////////////////////
-            } else if (isNum(tag) || tag == '.') {
-              if (tag == '.' &&
-                  (strBfrCursor.endsWith('(') ||
-                      strBfrCursor.endsWith(')') ||
-                      strBfrCursor.endsWith('.')))
-                toastMsg("Invalid Input");
-              else
-                typeIt(controller, tag);
-              ///////////////////////
-            } else {
-              if (strBfrCursor != '–' &&
-                  !strBfrCursor.endsWith('(–') &&
-                  (strBfrCursor.endsWith('÷') ||
+      
+                if (tag == 'AC') {
+                  controller.text = '';
+                  answer = '';
+      
+                  //////////////////////
+                } else if (tag == 'D') {
+                  int value = strBfrCursor.endsWith('㏒₂(')
+                      ? 3
+                      : strBfrCursor.endsWith('㏒(') || strBfrCursor.endsWith('㏑(')
+                          ? 2
+                          : 1;
+                  if (controller.text != '') {
+                    controller.text = controller.text.substring(
+                            0, controller.selection.baseOffset - value) +
+                        controller.text
+                            .substring(controller.selection.baseOffset);
+                    freezeCursor(controller, cursor - value + 1);
+                  }
+                  //////////////////////
+                } else if (tag == '=') {
+                  if (controller.text != '') {
+                    isEqual += 1;
+                    if (isEqual % 2 == 1) {
+                      if (isEqual > 2) controller.text = dummyInput;
+                      calculate(true);
+                      dummyInput = controller.text;
+                      eqSize = 40;
+                      resultSize = 50;
+                      if (answer != '') {
+                        if (history.isNotEmpty &&
+                            history.last[0] == controller.text)
+                          null;
+                        else {
+                          DateTime now = DateTime.now();
+                          String formattedDate =
+                              '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
+                          inputAnswer = [controller.text, answer, formattedDate];
+                          history.add(inputAnswer);
+                          // history.removeAt(2);
+                          save();
+                        }
+                      }
+                    } else {
+                      controller.text = answer;
+                      eqSize = 50;
+                      resultSize = 40;
+                      setState(() {});
+                    }
+                    cursor = controller.selection.baseOffset;
+                    print('cursor >> $cursor');
+                  } else {
+                    answer = '';
+                    toastMsg("Type Some expression and try");
+                  }
+      
+                  ////////////////
+                } else if (tag == '()') {
+                  openBracket = strBfrCursor.split("(").length - 1;
+                  closingBracket = strBfrCursor.split(")").length - 1;
+      
+                  if (openBracket == closingBracket ||
+                      strBfrCursor.endsWith('+') ||
+                      strBfrCursor.endsWith("–") ||
+                      strBfrCursor.endsWith("×") ||
+                      strBfrCursor.endsWith("÷") ||
+                      strBfrCursor.endsWith("("))
+                    typeIt(controller, '(');
+                  else if (openBracket > closingBracket) typeIt(controller, ')');
+      
+                  /////////////////////
+                } else if (tag == '–') {
+                  if (strBfrCursor.endsWith('–'))
+                    toastMsg(
+                        "Invalid Input"); //will not type - if there is already -
+                  else if (strBfrCursor.endsWith('÷') ||
                       strBfrCursor.endsWith('×') ||
-                      strBfrCursor.endsWith('–') ||
-                      strBfrCursor.endsWith('+'))) {
-                controller.text = controller.text
-                        .substring(0, controller.selection.baseOffset - 1) +
-                    controller.text.substring(controller.selection.baseOffset);
-                freezeCursor(controller, cursor);
-                typeIt(controller, tag);
-              } else if ((strBfrCursor != '' &&
-                  (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
-                      strBfrCursor.endsWith(')') ||
-                      strBfrCursor.endsWith('!') ||
-                      strBfrCursor.endsWith('e'))))
-                typeIt(controller, tag);
-              else
-                toastMsg("Invalid Input");
-            }
-          });
-          /////////////////////////
-          //fixscroll
-          scrollTheExpression(strBfrCursor);
-        },
-        child: Center(
-            child: tag == 'D'
-                ? Icon(
-                    Icons.backspace,
-                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                  )
-                : (tag == '×'
+                      strBfrCursor.endsWith('+')) {
+                    controller.text = controller.text
+                            .substring(0, controller.selection.baseOffset - 1) +
+                        controller.text
+                            .substring(controller.selection.baseOffset);
+                    freezeCursor(controller, cursor);
+                    typeIt(controller, '–');
+                  } else
+                    typeIt(controller, '–');
+                  ///////////////////////
+                } else if (isNum(tag) || tag == '.') {
+                  if (tag == '.' &&
+                      (strBfrCursor.endsWith('(') ||
+                          strBfrCursor.endsWith(')') ||
+                          strBfrCursor.endsWith('.')))
+                    toastMsg("Invalid Input");
+                  else
+                    typeIt(controller, tag);
+                  ///////////////////////
+                } else {
+                  if (strBfrCursor != '–' &&
+                      !strBfrCursor.endsWith('(–') &&
+                      (strBfrCursor.endsWith('÷') ||
+                          strBfrCursor.endsWith('×') ||
+                          strBfrCursor.endsWith('–') ||
+                          strBfrCursor.endsWith('+'))) {
+                    controller.text = controller.text
+                            .substring(0, controller.selection.baseOffset - 1) +
+                        controller.text
+                            .substring(controller.selection.baseOffset);
+                    freezeCursor(controller, cursor);
+                    typeIt(controller, tag);
+                  } else if ((strBfrCursor != '' &&
+                      (isNum(strBfrCursor[strBfrCursor.length - 1]) ||
+                          strBfrCursor.endsWith(')') ||
+                          strBfrCursor.endsWith('!') ||
+                          strBfrCursor.endsWith('e'))))
+                    typeIt(controller, tag);
+                  else
+                    toastMsg("Invalid Input");
+                }
+      
+                borderRad = 30;
+              });
+              Timer(Duration(milliseconds: 200), () {
+                setState(() {
+                  borderRad = 300;
+                });
+              });
+              /////////////////////////
+              //fixscroll
+              scrollTheExpression(strBfrCursor);
+            },
+            child: Center(
+                child: tag == 'D'
                     ? Icon(
-                        Icons.close,
-                        color: isDark
-                            ? Colors.grey.shade900
-                            : Colors.grey.shade100,
-                        size: wid * 0.08,
+                        Icons.backspace,
+                        color:
+                            isDark ? Colors.grey.shade900 : Colors.grey.shade100,
                       )
-                    : (tag == '+'
+                    : (tag == '×'
                         ? Icon(
-                            Icons.add,
+                            Icons.close,
                             color: isDark
                                 ? Colors.grey.shade900
                                 : Colors.grey.shade100,
                             size: wid * 0.08,
                           )
-                        : (tag == '–'
+                        : (tag == '+'
                             ? Icon(
-                                Icons.horizontal_rule_rounded,
+                                Icons.add,
                                 color: isDark
                                     ? Colors.grey.shade900
                                     : Colors.grey.shade100,
                                 size: wid * 0.08,
                               )
-                            : FittedBox(
-                                child: Padding(
-                                  padding: tag == '.'
-                                      ? EdgeInsets.only(bottom: wid * 0.22 / 5)
-                                      : EdgeInsets.all(0),
-                                  child: Text(
-                                    tag,
-                                    style: (tag == '÷')
-                                        ? GoogleFonts.notoSansMono(
-                                            fontSize: 44,
-                                            fontWeight: FontWeight.w300)
-                                        : GoogleFonts.ubuntuMono(
-                                            fontSize: tag == '=' || tag == '.'
-                                                ? 50
-                                                : tag == '()' || tag == 'AC'
-                                                    ? 35
-                                                    : 40,
-                                            fontWeight:
-                                                tag == '()' || tag == 'AC'
-                                                    ? FontWeight.w500
-                                                    : FontWeight.w500),
-                                  ),
-                                ),
-                              ))))));
+                            : (tag == '–'
+                                ? Icon(
+                                    Icons.horizontal_rule_rounded,
+                                    color: isDark
+                                        ? Colors.grey.shade900
+                                        : Colors.grey.shade100,
+                                    size: wid * 0.08,
+                                  )
+                                : FittedBox(
+                                    child: Padding(
+                                      padding: tag == '.'
+                                          ? EdgeInsets.only(
+                                              bottom: wid * 0.22 / 5)
+                                          : EdgeInsets.all(0),
+                                      child: Text(
+                                        tag,
+                                        style: (tag == '÷')
+                                            ? GoogleFonts.notoSansMono(
+                                                fontSize: 44,
+                                                fontWeight: FontWeight.w300)
+                                            : GoogleFonts.ubuntuMono(
+                                                fontSize: tag == '=' || tag == '.'
+                                                    ? 50
+                                                    : tag == '()' || tag == 'AC'
+                                                        ? 35
+                                                        : 40,
+                                                fontWeight:
+                                                    tag == '()' || tag == 'AC'
+                                                        ? FontWeight.w500
+                                                        : FontWeight.w500),
+                                      ),
+                                    ),
+                                  )))))),
+      );
+    });
   }
 
   void showTheme(double wid, BuildContext context) {
