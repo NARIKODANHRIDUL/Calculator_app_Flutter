@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'aboutus.dart';
 
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +19,7 @@ Future<void> main() async {
   binding.addPostFrameCallback((_) async {
     // nost sure but just trying to load fonts before starting
     BuildContext context = binding.renderViewElement as BuildContext;
-    await precacheImage(const AssetImage("images/neriquest.png"), context);
+    await precacheImage(const AssetImage("images/ .png"), context);
     Text("", style: GoogleFonts.ubuntuMono());
     Text("", style: GoogleFonts.nunito());
     binding.allowFirstFrame();
@@ -159,11 +160,11 @@ class _HomeState extends State<Home> {
     } catch (e) {}
     save();
     if (isDark) {
-      bgColor = Color.fromARGB(255, 23, 23, 23);
-      topBox = Color.fromARGB(255, 40, 40, 40);
+      bgColor = Color.fromARGB(255, 0, 0, 0);
+      topBox = Color.fromARGB(255, 16, 16, 16);
       resultColor = Colors.grey.shade200.withOpacity(0.8);
       eqColor = Colors.grey.shade100;
-      buttonColor = Color.fromARGB(255, 32, 32, 32);
+      buttonColor = Color.fromARGB(255, 14, 14, 14);
     } else {
       bgColor = Color.fromARGB(255, 232, 232, 232);
       topBox = Color.fromARGB(255, 220, 220, 220);
@@ -172,18 +173,17 @@ class _HomeState extends State<Home> {
       buttonColor = Color.fromARGB(255, 223, 223, 223);
     }
 
-    if (themeColorId == 1)
-      bTheme = Colors.lightGreen;
-    else if (themeColorId == 2)
-      bTheme = Colors.lightBlue;
-    else if (themeColorId == 3)
-      bTheme = Colors.red;
-    else
-      bTheme = Colors.orange;
+    // if (themeColorId == 1)
+    //   bTheme = Colors.lightGreen;
+    // else if (themeColorId == 2)
+    //   bTheme = Colors.lightBlue;
+    // else if (themeColorId == 3)
+    //   bTheme = Colors.red;
+    // else
+    //   bTheme = Colors.orange;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      //bottom button box
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: topBox,
@@ -349,9 +349,13 @@ class _HomeState extends State<Home> {
             onSelected: (value) async {
               if (value == 0) {
                 showTheme(wid, context);
-              } else if (value == 1)
-                openUrl('https://github.com/NARIKODANHRIDUL/');
-              else if (value == 2)
+              } else if (value == 1) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => about(isDark: isDark)));
+                
+              } else if (value == 2)
                 Share.share(
                     "Check out Chess Timer App in Google PlayStore  https://play.google.com/store/apps/details?id=neriquest.chesstimer");
               else if (value == 3)
