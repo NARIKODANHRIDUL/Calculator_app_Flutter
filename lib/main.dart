@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'aboutus.dart';
+import 'package:in_app_update/in_app_update.dart';
 
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +20,8 @@ Future<void> main() async {
   ]); //for orientation lock
   binding.addPostFrameCallback((_) async {
     // nost sure but just trying to load fonts before starting
-    BuildContext context = binding.renderViewElement as BuildContext;
-    await precacheImage(const AssetImage("images/ .png"), context);
+    BuildContext context = binding.rootElement as BuildContext;
+    await precacheImage(const AssetImage("images/neriquest.png"), context);
     Text("", style: GoogleFonts.ubuntuMono());
     Text("", style: GoogleFonts.nunito());
     binding.allowFirstFrame();
@@ -55,6 +54,7 @@ class _HomeState extends State<Home> {
   late TextEditingController controller;
   late TextEditingController convertController;
   late ScrollController scrollController = ScrollController();
+  late ScrollController scrollController1 = ScrollController();
 
   // String controller.text= '';
   String answer = '';
@@ -99,6 +99,7 @@ class _HomeState extends State<Home> {
     controller = TextEditingController();
     convertController = TextEditingController();
     // save();//will be better than continuos save()
+    checkForUpdate();
   }
 
   @override
@@ -106,7 +107,30 @@ class _HomeState extends State<Home> {
     controller.dispose();
     convertController.dispose();
     scrollController.dispose();
+    scrollController1.dispose();
     super.dispose();
+  }
+
+  Future<void> checkForUpdate() async {
+    print("CHecking Update");
+    InAppUpdate.checkForUpdate().then((info) {
+      setState(() {
+        if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+          print("Avaialable");
+          update();
+        }
+      });
+    }).catchError((e) {
+      print(e.toString());
+    });
+  }
+
+  void update() async {
+    print("Updating");
+    await InAppUpdate.startFlexibleUpdate();
+    InAppUpdate.completeFlexibleUpdate().then((_) {}).catchError((e) {
+      print(e.toString());
+    });
   }
 
   save() async {
@@ -145,8 +169,8 @@ class _HomeState extends State<Home> {
   }
 
   String converterSelectedItem = 'Decimal';
-  String logxSelected = 'log₁₀';
   List<String> converterItems = ['Binary', 'Octal', 'Decimal', 'Hexadecimal'];
+  String logxSelected = 'log₁₀';
   List<bool> converterToggleSwitchList = [true, false];
   List<String> logxList = ['log₁₀', 'log₂', 'ln'];
 
@@ -158,10 +182,7 @@ class _HomeState extends State<Home> {
     var verticalDivider = VerticalDivider(width: (1 - 0.22 * 4) / 5 * wid);
     var verticalDivider2 = VerticalDivider(width: (1 - 0.22 * 4) / 10 * wid);
 
-    try {
-      calculate(false);
-    } catch (e) {}
-    save();
+    // save();
     if (isDark) {
       bgColor = Color.fromARGB(255, 0, 0, 0);
       topBox = Color.fromARGB(255, 16, 16, 16);
@@ -176,14 +197,14 @@ class _HomeState extends State<Home> {
       buttonColor = Color.fromARGB(255, 223, 223, 223);
     }
 
-    // if (themeColorId == 1)
-    //   bTheme = Colors.lightGreen;
-    // else if (themeColorId == 2)
-    //   bTheme = Colors.lightBlue;
-    // else if (themeColorId == 3)
-    //   bTheme = Colors.red;
-    // else
-    //   bTheme = Colors.orange;
+    if (themeColorId == 1)
+      bTheme = Colors.lightGreen;
+    else if (themeColorId == 2)
+      bTheme = Colors.lightBlue;
+    else if (themeColorId == 3)
+      bTheme = Colors.red;
+    else
+      bTheme = Colors.orange;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -214,35 +235,40 @@ class _HomeState extends State<Home> {
                 ),
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: DropdownButton<String>(
-                  borderRadius: BorderRadius.circular(15),
-                  dropdownColor: buttonColor,
-                  elevation: 15,
-                  icon: Icon(Icons.keyboard_arrow_down_rounded),
-                  items: logxList
-                      .map((item) => DropdownMenuItem<String>(
-                            value: item,
-                            child: Text(
-                              item,
-                              style: GoogleFonts.nunito(
-                                  fontSize: 20, fontWeight: FontWeight.w500),
-                            ),
-                          ))
-                      .toList(),
-                  style: TextStyle(color: bTheme.shade300),
-                  underline: Container(),
-                  value: logxSelected,
-                  onChanged: (item) {
-                    setState(() {
-                      logxSelected = item ?? 'log₁₀';
-                      logx = item ?? 'log₁₀';
-                      if (item == "log₂")
-                        toastMsg("Log to the base 2");
-                      else if (item == "ln")
-                        toastMsg("Log(ln) to the base e");
-                      else if (item == "log₁₀") toastMsg("Log to the base 10");
-                    });
-                  }),
+              child: Container(
+                child: DropdownButton<String>(
+                    iconEnabledColor: bTheme,
+                    iconDisabledColor: bTheme,
+                    borderRadius: BorderRadius.circular(15),
+                    dropdownColor: isDark ? Colors.black : Colors.grey.shade200,
+                    elevation: 15,
+                    icon: Icon(Icons.keyboard_arrow_down_rounded),
+                    items: logxList
+                        .map((item) => DropdownMenuItem<String>(
+                              value: item,
+                              child: Text(
+                                item,
+                                style: GoogleFonts.nunito(
+                                    fontSize: 20, fontWeight: FontWeight.w500),
+                              ),
+                            ))
+                        .toList(),
+                    style: TextStyle(color: bTheme.shade300),
+                    underline: Container(),
+                    value: logxSelected,
+                    onChanged: (item) {
+                      setState(() {
+                        logxSelected = item ?? 'log₁₀';
+                        logx = item ?? 'log₁₀';
+                        if (item == "log₂")
+                          toastMsg("Log to the base 2");
+                        else if (item == "ln")
+                          toastMsg("Log(ln) to the base e");
+                        else if (item == "log₁₀")
+                          toastMsg("Log to the base 10");
+                      });
+                    }),
+              ),
             ),
           ),
           IconButton(
@@ -286,13 +312,41 @@ class _HomeState extends State<Home> {
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
                 value: 0,
-                child: Text(
-                  "Theme",
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.grey.shade800 : Colors.white,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Theme",
+                      style: GoogleFonts.nunito(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.grey.shade800 : Colors.white,
+                      ),
+                    ),
+                    ClipOval(
+                      // borderRadius: BorderRadius.all(Radius.circular(0)),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          save();
+                          setState(() {
+                            isDark = !isDark;
+                          });
+                          Navigator.of(context).pop();
+                        },
+                        child: Icon(
+                          isDark
+                              ? Icons.dark_mode_rounded
+                              : Icons.light_mode_rounded,
+                          color: isDark ? Colors.grey.shade800 : Colors.white,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.all(0),
+                            fixedSize: Size(40, 40),
+                            elevation: 0,
+                            backgroundColor: Colors.transparent),
+                      ),
+                    )
+                  ],
                 ),
               ),
               PopupMenuItem(
@@ -328,26 +382,6 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-              PopupMenuItem(
-                  value: 4,
-                  child: Transform.scale(
-                    scale: 1.2,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        width: 135,
-                        padding: EdgeInsets.all(0),
-                        child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                              bTheme.shade300.withOpacity(0.4),
-                              BlendMode.color),
-                          child: Image(
-                            image: AssetImage("images/neriquest.png"),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ))
             ],
             onSelected: (value) async {
               if (value == 0) {
@@ -359,10 +393,10 @@ class _HomeState extends State<Home> {
                         builder: (context) => about(isDark: isDark)));
               } else if (value == 2)
                 Share.share(
-                    "Check out Chess Timer App in Google PlayStore  https://play.google.com/store/apps/details?id=neriquest.chesstimer");
+                    "Check out Calculator App in Google PlayStore  https://play.google.com/store/apps/details?id=neriquest.calculator");
               else if (value == 3)
                 openUrl(
-                    'https://play.google.com/store/apps/details?id=neriquest.chesstimer');
+                    'https://play.google.com/store/apps/details?id=neriquest.calculator');
               else if (value == 4) toastMsg("Created by NeriQuest");
             },
           ),
@@ -397,7 +431,11 @@ class _HomeState extends State<Home> {
                           Scrollbar(
                             thumbVisibility: true,
                             thickness: 1,
+                            controller: scrollController,
                             child: TextField(
+                              onChanged: (changed) {
+                                calculate(true);
+                              },
                               scrollController: scrollController,
                               maxLines: 1,
                               textAlign: TextAlign.right,
@@ -418,8 +456,10 @@ class _HomeState extends State<Home> {
                           Scrollbar(
                             thumbVisibility: true,
                             thickness: 1,
+                            controller: scrollController1,
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
+                              controller: scrollController1,
                               child: GestureDetector(
                                 onLongPress: () async {
                                   await Clipboard.setData(
@@ -634,11 +674,11 @@ class _HomeState extends State<Home> {
               : EdgeInsets.all(0),
           child: Transform.scale(
             scale: (tag == "log₁₀")
-                ? 1.5
+                ? 2.5
                 : (tag == "log₂")
-                    ? 1.2
+                    ? 2
                     : (tag == "ln")
-                        ? 0.8
+                        ? 1.2
                         : 1,
             child: Text(
               tag,
@@ -664,22 +704,23 @@ class _HomeState extends State<Home> {
     return StatefulBuilder(builder: (context, setState) {
       return GestureDetector(
         onLongPress: () {
-              if (tag == 'D') {
-                setState(() {
-                  // for resetting for (answer to input)
-                  isEqual = 0;
-                  cursor = controller.selection.baseOffset;
-                  cursor = cursor == -1 ? controller.text.length : cursor;
-                  strBfrCursor = controller.text.substring(0, cursor);
-                  controller.text = controller.text.substring(cursor);
-                  freezeCursor(controller, 1);
-                });
-              }
-              setState(() {
-                borderRad = 30;
-              });
-            },
-            onLongPressEnd: (details) {
+          if (tag == 'D') {
+            setState(() {
+              // for resetting for (answer to input)
+              isEqual = 0;
+              cursor = controller.selection.baseOffset;
+              cursor = cursor == -1 ? controller.text.length : cursor;
+              strBfrCursor = controller.text.substring(0, cursor);
+              controller.text = controller.text.substring(cursor);
+              freezeCursor(controller, 1);
+            });
+          }
+          calculate(true);
+          setState(() {
+            borderRad = 30;
+          });
+        },
+        onLongPressEnd: (details) {
           setState(() {
             borderRad = 300;
           });
@@ -705,31 +746,31 @@ class _HomeState extends State<Home> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(borderRad),
                 )),
-            
             onPressed: () {
               setState(() {
                 // for resetting for (answer to input)
-                if (tag != '=') isEqual = 0;
+
                 ///////////////////////////
                 cursor = controller.selection.baseOffset;
                 cursor = cursor == -1 ? controller.text.length : cursor;
                 strBfrCursor = controller.text.substring(0, cursor);
                 ///////////////////////////
-      
+
                 if (answer != '') {
                   eqSize = 50;
                   resultSize = 40;
                 }
-      
+
                 if (tag == 'AC') {
                   controller.text = '';
                   answer = '';
-      
+
                   //////////////////////
                 } else if (tag == 'D') {
                   int value = strBfrCursor.endsWith('㏒₂(')
                       ? 3
-                      : strBfrCursor.endsWith('㏒(') || strBfrCursor.endsWith('㏑(')
+                      : strBfrCursor.endsWith('㏒(') ||
+                              strBfrCursor.endsWith('㏑(')
                           ? 2
                           : 1;
                   if (controller.text != '') {
@@ -757,7 +798,11 @@ class _HomeState extends State<Home> {
                           DateTime now = DateTime.now();
                           String formattedDate =
                               '${now.day} ${getMonthName(now.month)} ${now.year}, ${getFormattedTime(now.hour, now.minute)}';
-                          inputAnswer = [controller.text, answer, formattedDate];
+                          inputAnswer = [
+                            controller.text,
+                            answer,
+                            formattedDate
+                          ];
                           history.add(inputAnswer);
                           // history.removeAt(2);
                           save();
@@ -775,12 +820,12 @@ class _HomeState extends State<Home> {
                     answer = '';
                     toastMsg("Type Some expression and try");
                   }
-      
+
                   ////////////////
                 } else if (tag == '()') {
                   openBracket = strBfrCursor.split("(").length - 1;
                   closingBracket = strBfrCursor.split(")").length - 1;
-      
+
                   if (openBracket == closingBracket ||
                       strBfrCursor.endsWith('+') ||
                       strBfrCursor.endsWith("–") ||
@@ -788,8 +833,9 @@ class _HomeState extends State<Home> {
                       strBfrCursor.endsWith("÷") ||
                       strBfrCursor.endsWith("("))
                     typeIt(controller, '(');
-                  else if (openBracket > closingBracket) typeIt(controller, ')');
-      
+                  else if (openBracket > closingBracket)
+                    typeIt(controller, ')');
+
                   /////////////////////
                 } else if (tag == '–') {
                   if (strBfrCursor.endsWith('–'))
@@ -838,7 +884,7 @@ class _HomeState extends State<Home> {
                   else
                     toastMsg("Invalid Input");
                 }
-      
+
                 borderRad = 30;
               });
               Timer(Duration(milliseconds: 200), () {
@@ -846,6 +892,10 @@ class _HomeState extends State<Home> {
                   borderRad = 300;
                 });
               });
+              if (tag != '=') {
+                isEqual = 0;
+                calculate(false);
+              }
               /////////////////////////
               //fixscroll
               scrollTheExpression(strBfrCursor);
@@ -854,8 +904,9 @@ class _HomeState extends State<Home> {
                 child: tag == 'D'
                     ? Icon(
                         Icons.backspace,
-                        color:
-                            isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                        color: isDark
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade100,
                       )
                     : (tag == '×'
                         ? Icon(
@@ -894,7 +945,8 @@ class _HomeState extends State<Home> {
                                                 fontSize: 44,
                                                 fontWeight: FontWeight.w300)
                                             : GoogleFonts.ubuntuMono(
-                                                fontSize: tag == '=' || tag == '.'
+                                                fontSize: tag == '=' ||
+                                                        tag == '.'
                                                     ? 50
                                                     : tag == '()' || tag == 'AC'
                                                         ? 35
@@ -1045,138 +1097,153 @@ class _HomeState extends State<Home> {
   }
 
   void calculate(bool pressed) {
-    if (controller.text == '') answer = '';
-    String userInputToCalculate = controller.text;
-    print("-----------------------------\nGiven => $userInputToCalculate");
-    ////////////////////////////////
-    if (isOperator(userInputToCalculate[userInputToCalculate.length - 1]) ||
-        userInputToCalculate.endsWith('√') ||
-        userInputToCalculate.endsWith('^')) {
-      userInputToCalculate =
-          userInputToCalculate.substring(0, userInputToCalculate.length - 1);
-    } // if last digit is an operator it will ignore it
+    if (controller.text == '')
+      answer = '';
+    else {
+      String userInputToCalculate = controller.text;
+      print("-----------------------------\nGiven => $userInputToCalculate");
+      ////////////////////////////////
+      if (isOperator(userInputToCalculate[userInputToCalculate.length - 1]) ||
+          userInputToCalculate.endsWith('√') ||
+          userInputToCalculate.endsWith('^')) {
+        userInputToCalculate =
+            userInputToCalculate.substring(0, userInputToCalculate.length - 1);
+      } // if last digit is an operator it will ignore it
 
-    while (userInputToCalculate.contains('√√')) {
-      userInputToCalculate = userInputToCalculate.replaceAllMapped(
-          RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
-    } //when muultiple √√√ comes it gives correct brackets
-    if (userInputToCalculate.endsWith('e')) userInputToCalculate += '^1';
-    openBracket = userInputToCalculate.split("(").length - 1;
-    closingBracket = userInputToCalculate.split(")").length - 1;
-    if (openBracket > closingBracket && userInputToCalculate != '(')
-      userInputToCalculate =
-          userInputToCalculate + ')' * (openBracket - closingBracket);
+      while (userInputToCalculate.contains('√√')) {
+        userInputToCalculate = userInputToCalculate.replaceAllMapped(
+            RegExp(r'√√([^,]+)'), (match) => "√(√${match[1]})");
+      } //when muultiple √√√ comes it gives correct brackets
+      if (userInputToCalculate.endsWith('e')) userInputToCalculate += '^1';
+      openBracket = userInputToCalculate.split("(").length - 1;
+      closingBracket = userInputToCalculate.split(")").length - 1;
+      if (openBracket > closingBracket && userInputToCalculate != '(')
+        userInputToCalculate =
+            userInputToCalculate + ')' * (openBracket - closingBracket);
 
-    ////////////////////////////////
-    userInputToCalculate = userInputToCalculate.replaceAll('×', '*');
-    userInputToCalculate = userInputToCalculate.replaceAll('÷', '/');
-    userInputToCalculate = userInputToCalculate.replaceAll('–', '-');
-    userInputToCalculate = userInputToCalculate.replaceAll('㏒', 'log');
-    userInputToCalculate = userInputToCalculate.replaceAll('㏑', 'ln');
-    userInputToCalculate = userInputToCalculate.replaceAll('√', '*sqrt');
-    userInputToCalculate = userInputToCalculate.replaceAll('(*', '(');
-    userInputToCalculate = userInputToCalculate.replaceAll(')(', ')*(');
+      ////////////////////////////////
+      userInputToCalculate = userInputToCalculate.replaceAll('×', '*');
+      userInputToCalculate = userInputToCalculate.replaceAll('÷', '/');
+      userInputToCalculate = userInputToCalculate.replaceAll('–', '-');
+      userInputToCalculate = userInputToCalculate.replaceAll('㏒', 'log');
+      userInputToCalculate = userInputToCalculate.replaceAll('㏑', 'ln');
+      userInputToCalculate = userInputToCalculate.replaceAll('√', '*sqrt');
+      userInputToCalculate = userInputToCalculate.replaceAll('(*', '(');
+      userInputToCalculate = userInputToCalculate.replaceAll(')(', ')*(');
 
-    //if * at begining delete it (created due to *sqrt)
-    ////////////////////////////////
-    if (userInputToCalculate.startsWith('*'))
-      userInputToCalculate =
-          userInputToCalculate.substring(1, userInputToCalculate.length);
-    ////////////////////////////////
-    // log(5*3) => log(10, 5*3) //log(10,x) is thr syntax
-    int logCount = userInputToCalculate.split("log").length - 1;
-    for (int i = 0; i < logCount; i++) {
-      //when there is multiple log
-      userInputToCalculate = userInputToCalculate.replaceAllMapped(
-          RegExp(r"log\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
-      userInputToCalculate = userInputToCalculate.replaceAllMapped(
-          RegExp(r"log₂\(([^,]+)\)"), (match) => "log(2, ${match.group(1)})");
-    }
-    // ₁₀ ₂
+      //if * at begining delete it (created due to *sqrt)
+      ////////////////////////////////
+      if (userInputToCalculate.startsWith('*'))
+        userInputToCalculate =
+            userInputToCalculate.substring(1, userInputToCalculate.length);
+      ////////////////////////////////
+      // log(5*3) => log(10, 5*3) //log(10,x) is thr syntax
+      int logCount = userInputToCalculate.split("log").length - 1;
+      for (int i = 0; i < logCount; i++) {
+        //when there is multiple log
+        userInputToCalculate = userInputToCalculate.replaceAllMapped(
+            RegExp(r"log\(([^,]+)\)"), (match) => "log(10, ${match.group(1)})");
+        userInputToCalculate = userInputToCalculate.replaceAllMapped(
+            RegExp(r"log₂\(([^,]+)\)"), (match) => "log(2, ${match.group(1)})");
+      }
+      // ₁₀ ₂
 // log e = ln
-    //makes 8log => 8*log
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r"(\d)+log"), (match) => "${match.group(1)}*log");
-    //makes 8e => 8*e
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r"(\d)+e"), (match) => "${match.group(1)}*e");
-    // makes 9(5) => 9*(5)
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r'(\d+)\('), (match) => '${match.group(1)}*(');
-    // makes (5)9 => (5)*9
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r'\)(\d+)'), (match) => ')*${match.group(1)}');
-    // makes 5!9 => 5!*9
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r'\!(\d+)'), (match) => '!*${match.group(1)}');
-    // makes 5!(9 => 5!*(9
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r'\!(\()'), (match) => '!*${match.group(1)}');
-    // makes 5!9 => 5!*9
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r'\!(log)'), (match) => '!*${match.group(1)}');
-    // e5 => e^1 *5
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r'\e(\d+)'), (match) => 'e^1*${match.group(1)}');
-    //e( => e^1 *(
-    userInputToCalculate = userInputToCalculate.replaceAllMapped(
-        RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
-    // //sqrtlog => sqrt
-    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
-    //     RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
-    // //e( => e^1 *(
-    // userInputToCalculate = userInputToCalculate.replaceAllMapped(
-    //     RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
+      //makes 8log => 8*log
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r"(\d)+log"), (match) => "${match.group(1)}*log");
+      //makes 8e => 8*e
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r"(\d)+e"), (match) => "${match.group(1)}*e");
+      // makes 9(5) => 9*(5)
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'(\d+)\('), (match) => '${match.group(1)}*(');
+      // makes (5)9 => (5)*9
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'\)(\d+)'), (match) => ')*${match.group(1)}');
+      // makes 5!9 => 5!*9
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'\!(\d+)'), (match) => '!*${match.group(1)}');
+      // makes 5!(9 => 5!*(9
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'\!(\()'), (match) => '!*${match.group(1)}');
+      // makes 5!9 => 5!*9
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'\!(log)'), (match) => '!*${match.group(1)}');
+      // e5 => e^1 *5
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'\e(\d+)'), (match) => 'e^1*${match.group(1)}');
+      //e( => e^1 *(
+      userInputToCalculate = userInputToCalculate.replaceAllMapped(
+          RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
+      // //sqrtlog => sqrt
+      // userInputToCalculate = userInputToCalculate.replaceAllMapped(
+      //     RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
+      // //e( => e^1 *(
+      // userInputToCalculate = userInputToCalculate.replaceAllMapped(
+      //     RegExp(r'e(\()'), (match) => 'e^1*${match.group(1)}');
 
-    print("calculate => $userInputToCalculate");
-    /////////////////////////////////
-    try {
-      Parser p = Parser();
-      Expression exp = p.parse(userInputToCalculate);
-      ContextModel cm = ContextModel();
-      double eval = exp.evaluate(EvaluationType.REAL, cm);
+      print("calculate => $userInputToCalculate");
+      /////////////////////////////////
+      try {
+        Parser p = Parser();
+        Expression exp = p.parse(userInputToCalculate);
+        ContextModel cm = ContextModel();
+        double eval = exp.evaluate(EvaluationType.REAL, cm);
 
-      print("eval $eval");
-      setState(() {
-        answer = eval.toString();
+        print("eval $eval");
+        setState(() {
+          answer = eval.toString();
 
-        // fixing floating point error by rounding last digit
-        if (answer.contains('.')) {
-          int decimalLength = answer.substring(answer.indexOf('.') + 1).length;
-          print(decimalLength);
-          if (answer.contains('e'))
-            decimalLength = answer
-                .substring(answer.indexOf('.') + 1, answer.indexOf('e'))
-                .length;
-          if (decimalLength >= 16) answer = roundDouble(answer, decimalLength);
+          // Fixing floating point error by rounding the last digit
+          if (answer.contains('.')) {
+            int decimalLength =
+                answer.substring(answer.indexOf('.') + 1).length;
+            print(decimalLength);
+            if (answer.contains('e')) {
+              decimalLength = answer
+                  .substring(answer.indexOf('.') + 1, answer.indexOf('e'))
+                  .length;
+            }
+            if (decimalLength >= 16) {
+              answer = roundDouble(answer, decimalLength);
+            }
+          }
+
+          print("string answer = > $answer");
+          answer = removeTrailingZeros(answer);
+          if (!answer.contains('e')) answer = toExponentForm(answer);
+          answer = removeExtraDecimals(answer);
+
+          if ((pressed == false &&
+                  !isNum(answer[answer.length - 1]) &&
+                  eqSize == 50) ||
+              (controller.text == answer)) {
+            setState(() {
+              answer = '';
+            });
+          }
+
+          print("answer2: $answer");
+          answer =
+              answer == 'NaN' ? 'Keep it real' : answer; // Handle sqrt(-ve)
+        });
+      } catch (e) {
+        print("Error caught");
+
+        if (pressed) {
+          // Show error only if flag is true
+          setState(() {
+            // Assign error message as is from the package
+            answer = controller.text == '' ? '' : answer;
+            print("Error displayed as: $answer");
+          });
+        } else {
+          setState(() {
+            answer = "";
+          });
+          print("Invalid expression ignored (flag is false).");
         }
-        print("string answdasdaer = > " + answer);
-        answer = removeTrailingZeros(answer);
-        if (!answer.contains('e')) answer = toExponentForm(answer);
-        answer = removeExtraDecimals(answer);
-
-        if ((pressed == false &&
-                !isNum(answer[answer.length - 1]) &&
-                eqSize == 50) ||
-            (controller.text == answer))
-          setState(() {
-            answer = '';
-          });
-        print("answer2:  $answer");
-        answer = answer == 'NaN' ? 'Keep it real' : answer;
-        //Nan comes when sqrt(-ve)
-      });
-    } catch (e) {
-      print("Error in answer");
-
-      setState(() {
-        answer = controller.text == '' ? '' : "Error";
-        print(eqSize);
-        if (answer == 'Error' && eqSize == 50)
-          setState(() {
-            answer = '';
-          });
-      });
+      }
     }
   }
 

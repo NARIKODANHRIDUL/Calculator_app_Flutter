@@ -1,4 +1,4 @@
-package com.example.calculator
+package neriquest.calculator
 
 import io.flutter.embedding.android.FlutterActivity
 

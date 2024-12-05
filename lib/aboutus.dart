@@ -46,11 +46,13 @@ class about extends StatelessWidget {
                   Navigator.of(context).pop();
                 },
                 style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.all(0),
                   shape: RoundedRectangleBorder(
+                    
                       borderRadius: BorderRadius.only(
                           bottomRight: Radius.circular(18),
                           topRight: Radius.circular(18))),
-                  backgroundColor: bgcolor,
+                  backgroundColor: Colors.grey,
                   elevation: 0,
                 ),
                 child: Icon(
@@ -75,13 +77,13 @@ class about extends StatelessWidget {
                       style: GoogleFonts.righteous(
                         fontSize: 28,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade900,
+                        color: Colors.grey,
                       )),
                 ),
                 Icon(
                   Icons.info_outline,
                   size: 28,
-                  color: Colors.grey.shade900,
+                  color: Colors.grey
                 ),
               ]),
               backgroundColor: Colors.transparent,
@@ -103,7 +105,7 @@ class about extends StatelessWidget {
               ),
               Center(
                 child: Text(
-                  "Chess Timer",
+                  "Calculator",
                   style: GoogleFonts.viga(
                       color: Colors.grey.shade800,
                       fontSize: 25,
@@ -194,7 +196,7 @@ class about extends StatelessWidget {
                             fontWeight: FontWeight.w500),
                       ),
                       subtitle: Text(
-                        "1.0.2+3",
+                        "1.0.5+6",
                         style: GoogleFonts.firaSans(
                           color: subtitle,
                         ),
@@ -257,14 +259,14 @@ class about extends StatelessWidget {
                             fontWeight: FontWeight.w500),
                       ),
                       subtitle: Text(
-                        "Enjoying Chess Timer ?",
+                        "Enjoying Calculator ?",
                         style: GoogleFonts.firaSans(
                           color: subtitle,
                         ),
                       ),
                       onTap: () async {
                         const url =
-                            'https://play.google.com/store/apps/details?id=neriquest.chesstimer';
+                            'https://play.google.com/store/apps/details?id=neriquest.calculator';
                         if (await canLaunchUrl(Uri.parse(url))) {
                           await launchUrl(Uri.parse(url),
                               mode: LaunchMode.externalApplication);
