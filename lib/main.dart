@@ -634,80 +634,115 @@ class _HomeState extends State<Home> {
                             ),
                           ],
                         ),
-                        child: Column(
-                          children: [
-                            SizedBox(height: topAreaHeight),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.bottomRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               // Input TextField: Only input box is scrollable, typing starts bottom right, autoscale then vertical scale
                               Expanded(
-                                child: Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: ScrollbarTheme(
-                                    data: ScrollbarThemeData(
-                                      thumbColor: WidgetStateProperty.all(bTheme.shade300.withValues(alpha: 0.65)),
-                                      radius: const Radius.circular(8),
-                                      thickness: WidgetStateProperty.all(3.5),
-                                    ),
-                                    child: Scrollbar(
-                                      controller: scrollController,
-                                      thumbVisibility: true,
-                                      scrollbarOrientation: ScrollbarOrientation.right,
-                                      child: AnimatedSize(
-                                        duration: const Duration(milliseconds: 240),
-                                        curve: Curves.easeOutCubic,
-                                        alignment: Alignment.bottomRight,
-                                        child: TextField(
-                                        onChanged: (changed) {
-                                          isEqual = 0;
-                                          // Handle pasting with auto Indian comma formatting
-                                          final String formatted = formatIndianExpression(changed);
-                                          if (formatted != changed) {
-                                            final int currentOffset = controller.selection.baseOffset.clamp(0, changed.length);
-                                            final int rawCur = changed.substring(0, currentOffset).replaceAll(',', '').replaceAll('\u200B', '').length;
-                                            final int newCur = calculateFormattedCursor(formatted, rawCur);
-                                            controller.value = TextEditingValue(
-                                              text: formatted,
-                                              selection: TextSelection.collapsed(offset: newCur.clamp(0, formatted.length)),
-                                            );
-                                          }
-                                          calculate(false);
-                                          scrollTheExpression();
+                                child: ScrollbarTheme(
+                                  data: ScrollbarThemeData(
+                                    thumbColor: WidgetStateProperty.all(bTheme.shade300.withValues(alpha: 0.65)),
+                                    radius: const Radius.circular(8),
+                                    thickness: WidgetStateProperty.all(3.5),
+                                  ),
+                                  child: Scrollbar(
+                                    controller: scrollController,
+                                    thumbVisibility: true,
+                                    scrollbarOrientation: ScrollbarOrientation.right,
+                                    child: ShaderMask(
+                                      shaderCallback: (Rect bounds) {
+                                        final double fadeHeight = topAreaHeight.clamp(20.0, bounds.height);
+                                        final double stop = (fadeHeight / bounds.height).clamp(0.0, 1.0);
+                                        return LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: const [
+                                            Colors.transparent,
+                                            Colors.transparent,
+                                            Colors.white,
+                                          ],
+                                          stops: [
+                                            0.0,
+                                            stop * 0.4,
+                                            stop,
+                                          ],
+                                        ).createShader(bounds);
+                                      },
+                                      blendMode: BlendMode.dstIn,
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          return SingleChildScrollView(
+                                            controller: scrollController,
+                                            physics: const AlwaysScrollableScrollPhysics(
+                                              parent: BouncingScrollPhysics(),
+                                            ),
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                                              child: IntrinsicHeight(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.end,
+                                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                                  children: [
+                                                    SizedBox(height: topAreaHeight),
+                                                    const Spacer(),
+                                                    AnimatedSize(
+                                                      duration: const Duration(milliseconds: 240),
+                                                      curve: Curves.easeOutCubic,
+                                                      alignment: Alignment.bottomRight,
+                                                      child: TextField(
+                                                        onChanged: (changed) {
+                                                          isEqual = 0;
+                                                          // Handle pasting with auto Indian comma formatting
+                                                          final String formatted = formatIndianExpression(changed);
+                                                          if (formatted != changed) {
+                                                            final int currentOffset = controller.selection.baseOffset.clamp(0, changed.length);
+                                                            final int rawCur = changed.substring(0, currentOffset).replaceAll(',', '').replaceAll('\u200B', '').length;
+                                                            final int newCur = calculateFormattedCursor(formatted, rawCur);
+                                                            controller.value = TextEditingValue(
+                                                              text: formatted,
+                                                              selection: TextSelection.collapsed(offset: newCur.clamp(0, formatted.length)),
+                                                            );
+                                                          }
+                                                          calculate(false);
+                                                          scrollTheExpression();
+                                                        },
+                                                        onTap: () {
+                                                          scrollTheExpression();
+                                                        },
+                                                        scrollPhysics: const NeverScrollableScrollPhysics(),
+                                                        maxLines: null,
+                                                        textAlign: TextAlign.right,
+                                                        autofocus: true,
+                                                        style: GoogleFonts.ubuntuMono(
+                                                          fontSize: dynamicEqSize,
+                                                          color: eqColor,
+                                                          letterSpacing: -0.5,
+                                                          height: 1.25,
+                                                        ),
+                                                        cursorColor: bTheme.shade300,
+                                                        textDirection: TextDirection.ltr,
+                                                        cursorRadius: const Radius.circular(12),
+                                                        keyboardType: TextInputType.none,
+                                                        controller: controller,
+                                                        textInputAction: TextInputAction.previous,
+                                                        decoration: const InputDecoration(
+                                                          border: InputBorder.none,
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets.only(right: 6, bottom: 4),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
                                         },
-                                        onTap: () {
-                                          scrollTheExpression();
-                                        },
-                                        scrollController: scrollController,
-                                        maxLines: null,
-                                        textAlign: TextAlign.right,
-                                        autofocus: true,
-                                        style: GoogleFonts.ubuntuMono(
-                                          fontSize: dynamicEqSize,
-                                          color: eqColor,
-                                          letterSpacing: -0.5,
-                                          height: 1.25,
-                                        ),
-                                        cursorColor: bTheme.shade300,
-                                        textDirection: TextDirection.ltr,
-                                        cursorRadius: const Radius.circular(12),
-                                        keyboardType: TextInputType.none,
-                                        controller: controller,
-                                        textInputAction: TextInputAction.previous,
-                                        decoration: const InputDecoration(
-                                          border: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: EdgeInsets.only(right: 6, bottom: 4),
-                                        ),
                                       ),
                                     ),
-                                      ),
                                   ),
                                 ),
                               ),
@@ -760,10 +795,6 @@ class _HomeState extends State<Home> {
                             ],
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ),

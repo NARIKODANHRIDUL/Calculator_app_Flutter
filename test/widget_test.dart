@@ -393,4 +393,51 @@ void main() {
     expect(textField.controller?.selection.baseOffset, textField.controller?.text.length);
     expect(textField.controller?.text, contains('×\u200B1'));
   });
+
+  testWidgets('Expression area extends through AppBar with ShaderMask fade and top clearance',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // Verify ShaderMask is present for top fading
+    expect(find.byType(ShaderMask), findsWidgets);
+
+    // Enter a long multi-line expression
+    final textField = tester.widget<TextField>(find.byType(TextField).first);
+    textField.controller?.text = Home.formatIndianExpression(
+      '123,456×789,012+345,678-901,234÷567,890+111,222×333,444-555,666+777,888×999,000',
+    );
+    await tester.pumpAndSettle();
+
+    // Verify SingleChildScrollView exists and is scrollable
+    final scrollableFinder = find.byType(SingleChildScrollView);
+    expect(scrollableFinder, findsWidgets);
+
+    final scrollables = tester.widgetList<SingleChildScrollView>(scrollableFinder);
+    final verticalScrollView = scrollables.firstWhere((s) => s.scrollDirection == Axis.vertical);
+    expect(verticalScrollView.controller, isNotNull);
+    final scrollController = verticalScrollView.controller!;
+    expect(scrollController.hasClients, isTrue);
+
+    // Scroll to top (offset 0.0)
+    scrollController.jumpTo(0.0);
+    await tester.pumpAndSettle();
+    expect(scrollController.offset, 0.0);
+
+    // The first line should be below AppBar (topAreaHeight)
+    final textFieldRender = tester.getTopLeft(find.byType(TextField).first);
+    expect(textFieldRender.dy, greaterThanOrEqualTo(kToolbarHeight));
+
+    // Scroll down to the bottom
+    final maxScroll = scrollController.position.maxScrollExtent;
+    expect(maxScroll, greaterThan(0.0));
+    scrollController.jumpTo(maxScroll);
+    await tester.pumpAndSettle();
+    expect(scrollController.offset, maxScroll);
+  });
 }
