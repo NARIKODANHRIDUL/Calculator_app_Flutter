@@ -153,7 +153,7 @@ void main() {
     await tester.tap(find.text('0'));
     await tester.pumpAndSettle();
 
-    expect(textField.controller?.text, '10,000×50');
+    expect(textField.controller?.text, '10,000×\u200B50');
 
     await tester.tap(find.text('='));
     await tester.pumpAndSettle();
@@ -354,7 +354,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final textField = tester.widget<TextField>(find.byType(TextField).first);
-    textField.controller?.text = '10,000×10,000×10,000×10,000';
+    textField.controller?.text = Home.formatIndianExpression('10,000×10,000×10,000×10,000');
     await tester.pumpAndSettle();
 
     final span = textField.controller?.buildTextSpan(
@@ -362,5 +362,35 @@ void main() {
       withComposing: false,
     );
     expect(span?.toPlainText(), contains('×\u200B'));
+  });
+
+  testWidgets('Typing number then × then another number keeps cursor at the end without drifting left',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // Type 10000
+    await tester.tap(find.text('1'));
+    await tester.pumpAndSettle();
+    for (int i = 0; i < 4; i++) {
+      await tester.tap(find.text('0'));
+      await tester.pumpAndSettle();
+    }
+    // Tap ×
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    // Tap 1
+    await tester.tap(find.text('1'));
+    await tester.pumpAndSettle();
+
+    final textField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(textField.controller?.selection.baseOffset, textField.controller?.text.length);
+    expect(textField.controller?.text, contains('×\u200B1'));
   });
 }

@@ -65,6 +65,10 @@ class MyApp extends StatelessWidget {
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
+  static String formatIndianExpression(String expr) => _HomeState.formatIndianExpression(expr);
+  static int calculateFormattedCursor(String formatted, int targetRawIndex) => _HomeState.calculateFormattedCursor(formatted, targetRawIndex);
+  static String formatIndianInteger(String intStr) => _HomeState.formatIndianInteger(intStr);
+
   @override
   State<Home> createState() => _HomeState();
 }
@@ -78,14 +82,9 @@ class CalculatorTextEditingController extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
-    // Insert zero-width space after operators so line breaks only occur at operator boundaries,
-    // ensuring numbers (e.g. 10,000) are never split across lines.
-    final rawText = text;
-    final rendered = rawText.replaceAllMapped(
-      RegExp(r'([\+–×\*÷/\-])'),
-      (m) => '${m.group(1)}\u200B',
-    );
-    return TextSpan(text: rendered, style: style);
+    // Return standard TextSpan with 1:1 length parity to controller.text,
+    // ensuring caret and selection offsets never desynchronize.
+    return TextSpan(text: text, style: style);
   }
 }
 
@@ -125,7 +124,7 @@ class _HomeState extends State<Home> {
     if (isEqual > 0 && isEqual % 2 == 1) {
       return 24.0;
     }
-    final int len = controller.text.length;
+    final int len = controller.text.replaceAll('\u200B', '').length;
     if (len <= 10) return 44.0;
     if (len <= 24) {
       return 44.0 - ((len - 10) * (16.0 / 14.0));
@@ -263,19 +262,26 @@ class _HomeState extends State<Home> {
   }
 
   static String formatIndianExpression(String expr) {
-    final clean = expr.replaceAll(',', '');
-    return clean.replaceAllMapped(RegExp(r'\d+(\.\d*)?|\.\d+'), (m) {
+    final clean = expr.replaceAll(',', '').replaceAll('\u200B', '');
+    final formatted = clean.replaceAllMapped(RegExp(r'\d+(\.\d*)?|\.\d+'), (m) {
       return formatIndianNumberToken(m.group(0)!);
     });
+    return formatted.replaceAllMapped(
+      RegExp(r'(?<![\(\+–×\*÷/\-]|^)[\+–×\*÷/\-]'),
+      (m) => '${m.group(0)}\u200B',
+    );
   }
 
   static int calculateFormattedCursor(String formatted, int targetRawIndex) {
     if (targetRawIndex <= 0) return 0;
-    int nonCommaSeen = 0;
+    int nonDecorSeen = 0;
     for (int i = 0; i < formatted.length; i++) {
-      if (formatted[i] != ',') {
-        nonCommaSeen++;
-        if (nonCommaSeen == targetRawIndex) {
+      if (formatted[i] != ',' && formatted[i] != '\u200B') {
+        nonDecorSeen++;
+        if (nonDecorSeen == targetRawIndex) {
+          if (i + 1 < formatted.length && formatted[i + 1] == '\u200B') {
+            return i + 2;
+          }
           return i + 1;
         }
       }
@@ -665,7 +671,7 @@ class _HomeState extends State<Home> {
                                           final String formatted = formatIndianExpression(changed);
                                           if (formatted != changed) {
                                             final int currentOffset = controller.selection.baseOffset.clamp(0, changed.length);
-                                            final int rawCur = changed.substring(0, currentOffset).replaceAll(',', '').length;
+                                            final int rawCur = changed.substring(0, currentOffset).replaceAll(',', '').replaceAll('\u200B', '').length;
                                             final int newCur = calculateFormattedCursor(formatted, rawCur);
                                             controller.value = TextEditingValue(
                                               text: formatted,
@@ -910,7 +916,7 @@ class _HomeState extends State<Home> {
           if (tag == '√') {
             typeIt(controller, '√(');
           } else if (tag == '^') {
-            final rawBfr = strBfrCursor.replaceAll(',', '');
+            final rawBfr = strBfrCursor.replaceAll(',', '').replaceAll('\u200B', '');
             if (rawBfr.isNotEmpty &&
                 (isNum(rawBfr[rawBfr.length - 1]) ||
                     rawBfr.endsWith(')') ||
@@ -919,32 +925,32 @@ class _HomeState extends State<Home> {
               typeIt(controller, '^(');
             }
           } else if (tag == '!') {
-            final rawBfr = strBfrCursor.replaceAll(',', '');
+            final rawBfr = strBfrCursor.replaceAll(',', '').replaceAll('\u200B', '');
             if (rawBfr.isNotEmpty &&
                 (isNum(rawBfr[rawBfr.length - 1]) ||
                     rawBfr.endsWith(')'))) {
               typeIt(controller, '!');
             }
           } else if (tag == 'e') {
-            if (strBfrCursor.endsWith("√")) {
+            if (strBfrCursor.replaceAll('\u200B', '').endsWith("√")) {
               typeIt(controller, '(e');
             } else {
               typeIt(controller, 'e');
             }
           } else if (tag == 'log₂') {
-            if (strBfrCursor.endsWith("√")) {
+            if (strBfrCursor.replaceAll('\u200B', '').endsWith("√")) {
               typeIt(controller, '(㏒₂(');
             } else {
               typeIt(controller, "㏒₂(");
             }
           } else if (tag == 'log₁₀') {
-            if (strBfrCursor.endsWith("√")) {
+            if (strBfrCursor.replaceAll('\u200B', '').endsWith("√")) {
               typeIt(controller, '(㏒(');
             } else {
               typeIt(controller, '㏒(');
             }
           } else if (tag == 'ln') {
-            if (strBfrCursor.endsWith("√")) {
+            if (strBfrCursor.replaceAll('\u200B', '').endsWith("√")) {
               typeIt(controller, '(㏑(');
             } else {
               typeIt(controller, '㏑(');
@@ -1025,7 +1031,7 @@ class _HomeState extends State<Home> {
             cursor = (cursor == -1 || cursor > controller.text.length)
                 ? controller.text.length
                 : cursor;
-            controller.text = controller.text.substring(cursor);
+            controller.text = formatIndianExpression(controller.text.substring(cursor));
             freezeCursor(controller, 1);
           });
           calculate(false);
@@ -1038,7 +1044,7 @@ class _HomeState extends State<Home> {
               ? controller.text.length
               : cursor;
           strBfrCursor = controller.text.substring(0, cursor);
-          final String rawBfrCursor = strBfrCursor.replaceAll(',', '');
+          final String rawBfrCursor = strBfrCursor.replaceAll(',', '').replaceAll('\u200B', '');
 
           if (answer != '') {
             eqSize = 50;
@@ -1052,7 +1058,7 @@ class _HomeState extends State<Home> {
             // Intelligent backspace with Indian Comma System:
             // Deletes the digit/symbol before comma instead of dangling comma
             if (controller.text.isNotEmpty && cursor > 0) {
-              final int rawCur = controller.text.substring(0, cursor).replaceAll(',', '').length;
+              final int rawCur = controller.text.substring(0, cursor).replaceAll(',', '').replaceAll('\u200B', '').length;
               if (rawCur > 0) {
                 int deleteCount = 1;
                 if (rawBfrCursor.endsWith('㏒₂(')) {
@@ -1065,7 +1071,7 @@ class _HomeState extends State<Home> {
                 }
                 deleteCount = deleteCount.clamp(1, rawCur);
 
-                final String clean = controller.text.replaceAll(',', '');
+                final String clean = controller.text.replaceAll(',', '').replaceAll('\u200B', '');
                 final String newClean = clean.substring(0, rawCur - deleteCount) + clean.substring(rawCur);
                 final int targetRawCur = rawCur - deleteCount;
 
@@ -1111,7 +1117,7 @@ class _HomeState extends State<Home> {
                     answer != 'Keep it real' &&
                     answer != 'Infinity' &&
                     answer != '-Infinity') {
-                  controller.text = answer;
+                  controller.text = formatIndianExpression(answer);
                   freezeCursor(controller, controller.text.length + 1);
                 }
                 eqSize = 50;
@@ -1150,9 +1156,9 @@ class _HomeState extends State<Home> {
                 rawBfrCursor.endsWith('*') ||
                 rawBfrCursor.endsWith('+')) {
               // Replace preceding operator
-              final int rawCur = controller.text.substring(0, cursor).replaceAll(',', '').length;
+              final int rawCur = controller.text.substring(0, cursor).replaceAll(',', '').replaceAll('\u200B', '').length;
               if (rawCur > 0) {
-                final String clean = controller.text.replaceAll(',', '');
+                final String clean = controller.text.replaceAll(',', '').replaceAll('\u200B', '');
                 final String newClean = '${clean.substring(0, rawCur - 1)}–${clean.substring(rawCur)}';
                 final String formatted = formatIndianExpression(newClean);
                 final int newCur = calculateFormattedCursor(formatted, rawCur);
@@ -1208,8 +1214,8 @@ class _HomeState extends State<Home> {
                     rawBfrCursor.endsWith('–') ||
                     rawBfrCursor.endsWith('-') ||
                     rawBfrCursor.endsWith('+'))) {
-              final int rawCur = controller.text.substring(0, cursor).replaceAll(',', '').length;
-              final String clean = controller.text.replaceAll(',', '');
+              final int rawCur = controller.text.substring(0, cursor).replaceAll(',', '').replaceAll('\u200B', '').length;
+              final String clean = controller.text.replaceAll(',', '').replaceAll('\u200B', '');
               final String newClean = clean.substring(0, rawCur - 1) + tag + clean.substring(rawCur);
               final String formatted = formatIndianExpression(newClean);
               final int newCur = calculateFormattedCursor(formatted, rawCur);
@@ -1442,8 +1448,8 @@ class _HomeState extends State<Home> {
       return;
     }
 
-    // Strip Indian commas before math expression evaluation
-    String userInput = controller.text.replaceAll(',', '');
+    // Strip Indian commas and ZWSP before math expression evaluation
+    String userInput = controller.text.replaceAll(',', '').replaceAll('\u200B', '');
 
     // Ignore trailing operators for preview
     while (userInput.isNotEmpty &&
@@ -1538,7 +1544,7 @@ class _HomeState extends State<Home> {
           answer = formatResult(eval);
         }
 
-        if (!pressed && controller.text == answer) {
+        if (!pressed && controller.text.replaceAll('\u200B', '') == answer.replaceAll('\u200B', '')) {
           answer = '';
         }
       });
@@ -1678,9 +1684,9 @@ class _HomeState extends State<Home> {
     cur = (cur == -1 || cur > control.text.length) ? control.text.length : cur;
     cur = cur.clamp(0, control.text.length);
 
-    // Count non-comma characters before cursor
-    final int rawCursor = control.text.substring(0, cur).replaceAll(',', '').length;
-    final String clean = control.text.replaceAll(',', '');
+    // Count non-comma, non-ZWSP characters before cursor
+    final int rawCursor = control.text.substring(0, cur).replaceAll(',', '').replaceAll('\u200B', '').length;
+    final String clean = control.text.replaceAll(',', '').replaceAll('\u200B', '');
     final String newClean = clean.substring(0, rawCursor) + str + clean.substring(rawCursor);
     final int targetRawCursor = rawCursor + str.length;
 
@@ -2130,7 +2136,7 @@ class _HomeState extends State<Home> {
           onTap: () {
             HapticFeedback.lightImpact();
             setState(() {
-              controller.text = item[0];
+              controller.text = formatIndianExpression(item[0]);
               freezeCursor(controller, controller.text.length + 1);
             });
             Navigator.of(context).pop();
