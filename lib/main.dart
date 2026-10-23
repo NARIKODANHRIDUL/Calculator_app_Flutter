@@ -100,6 +100,18 @@ class _HomeState extends State<Home> {
 
   double resultSize = 40;
   double eqSize = 50;
+
+  double get dynamicEqSize {
+    if (isEqual > 0 && isEqual % 2 == 1) {
+      return 24.0;
+    }
+    final int len = controller.text.length;
+    if (len <= 10) return 44.0;
+    if (len <= 24) {
+      return 44.0 - ((len - 10) * (16.0 / 14.0));
+    }
+    return 28.0;
+  }
   int isEqual = 0;
   String dummyInput = '';
 
@@ -303,192 +315,224 @@ class _HomeState extends State<Home> {
         systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         title: const SizedBox.shrink(),
         actions: [
-          Center(
-            child: Container(
-              height: 38,
-              padding: const EdgeInsets.only(left: 10),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? bTheme.shade200.withValues(alpha: 0.1)
-                    : bTheme.shade200.withValues(alpha: 0.3),
-                border: Border.all(
-                  color: isDark
-                      ? bTheme.shade400.withValues(alpha: 0.25)
-                      : bTheme.shade400.withValues(alpha: 0.4),
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: DropdownButton<String>(
-                iconEnabledColor: bTheme.shade300,
-                iconDisabledColor: bTheme.shade300,
-                borderRadius: BorderRadius.circular(16),
-                dropdownColor: isDark ? const Color(0xFF141414) : Colors.grey.shade200,
-                elevation: 15,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                items: logxList
-                    .map((item) => DropdownMenuItem<String>(
-                          value: item,
-                          child: Text(
-                            item,
-                            style: GoogleFonts.nunito(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+          Padding(
+            padding: const EdgeInsets.only(right: 14, top: 7, bottom: 7),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : Colors.white.withValues(alpha: 0.65),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        height: 32,
+                        padding: const EdgeInsets.only(left: 8),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? bTheme.shade200.withValues(alpha: 0.12)
+                              : bTheme.shade200.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: DropdownButton<String>(
+                          iconEnabledColor: bTheme.shade300,
+                          iconDisabledColor: bTheme.shade300,
+                          borderRadius: BorderRadius.circular(16),
+                          dropdownColor: isDark ? const Color(0xFF141414) : Colors.grey.shade200,
+                          elevation: 15,
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                          items: logxList
+                              .map((item) => DropdownMenuItem<String>(
+                                    value: item,
+                                    child: Text(
+                                      item,
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ))
+                              .toList(),
+                          style: TextStyle(
+                            color: bTheme.shade300,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.5,
+                          ),
+                          underline: const SizedBox(),
+                          value: logxSelected,
+                          onChanged: (item) {
+                            setState(() {
+                              logxSelected = item ?? 'log₁₀';
+                              logx = item ?? 'log₁₀';
+                              if (item == "log₂") {
+                                toastMsg("Log to the base 2");
+                              } else if (item == "ln") {
+                                toastMsg("Log(ln) to the base e");
+                              } else if (item == "log₁₀") {
+                                toastMsg("Log to the base 10");
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                        onPressed: () {
+                          isEqual = 0;
+                          showConverter(context);
+                        },
+                        tooltip: "Converter",
+                        splashRadius: 18,
+                        icon: Icon(
+                          Icons.swap_horiz_rounded,
+                          size: 26,
+                          color: bTheme.shade300,
+                        ),
+                      ),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                        onPressed: () {
+                          isEqual = 0;
+                          showHistory(context);
+                        },
+                        tooltip: "History",
+                        splashRadius: 18,
+                        icon: Icon(
+                          Icons.history,
+                          size: 24,
+                          color: bTheme.shade300,
+                        ),
+                      ),
+                      PopupMenuButton<int>(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                        splashRadius: 18,
+                        icon: Icon(
+                          Icons.more_vert_rounded,
+                          color: bTheme.shade300,
+                          size: 23,
+                        ),
+                        position: PopupMenuPosition.under,
+                        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                        elevation: 8,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: isDark ? Colors.white10 : Colors.black12,
+                          ),
+                        ),
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem(
+                            value: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Theme",
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                Icon(
+                                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                                  color: bTheme.shade300,
+                                  size: 22,
+                                ),
+                              ],
                             ),
                           ),
-                        ))
-                    .toList(),
-                style: TextStyle(
-                  color: bTheme.shade300,
-                  fontWeight: FontWeight.w600,
-                ),
-                underline: const SizedBox(),
-                value: logxSelected,
-                onChanged: (item) {
-                  setState(() {
-                    logxSelected = item ?? 'log₁₀';
-                    logx = item ?? 'log₁₀';
-                    if (item == "log₂") {
-                      toastMsg("Log to the base 2");
-                    } else if (item == "ln") {
-                      toastMsg("Log(ln) to the base e");
-                    } else if (item == "log₁₀") {
-                      toastMsg("Log to the base 10");
-                    }
-                  });
-                },
-              ),
-            ),
-          ),
-          IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              isEqual = 0;
-              showConverter(context);
-            },
-            tooltip: "Converter",
-            splashRadius: 24,
-            icon: Icon(
-              Icons.swap_horiz_rounded,
-              size: 32,
-              color: bTheme.shade300,
-            ),
-          ),
-          IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              isEqual = 0;
-              showHistory(context);
-            },
-            tooltip: "History",
-            splashRadius: 24,
-            icon: Icon(
-              Icons.history,
-              size: 30,
-              color: bTheme.shade300,
-            ),
-          ),
-          PopupMenuButton<int>(
-            splashRadius: 24,
-            icon: Icon(
-              Icons.more_vert_rounded,
-              color: bTheme.shade300,
-              size: 28,
-            ),
-            position: PopupMenuPosition.under,
-            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: isDark ? Colors.white10 : Colors.black12,
-              ),
-            ),
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem(
-                value: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Theme",
-                      style: GoogleFonts.nunito(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black87,
+                          PopupMenuItem(
+                            value: 1,
+                            child: Text(
+                              "About Us",
+                              style: GoogleFonts.nunito(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 2,
+                            child: Text(
+                              "Share App",
+                              style: GoogleFonts.nunito(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 3,
+                            child: Text(
+                              "Rate Us",
+                              style: GoogleFonts.nunito(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                        onSelected: (val) async {
+                          if (val == 0) {
+                            showTheme(MediaQuery.of(context).size.width, context);
+                          } else if (val == 1) {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    about(isDark: isDark),
+                                transitionsBuilder:
+                                    (context, animation, secondaryAnimation, child) {
+                                  return FadeTransition(opacity: animation, child: child);
+                                },
+                                transitionDuration: const Duration(milliseconds: 220),
+                              ),
+                            );
+                          } else if (val == 2) {
+                            Share.share(
+                              "Check out Calculator App in Google PlayStore https://play.google.com/store/apps/details?id=neriquest.calculator",
+                            );
+                          } else if (val == 3) {
+                            openUrl(
+                              'https://play.google.com/store/apps/details?id=neriquest.calculator',
+                            );
+                          }
+                        },
                       ),
-                    ),
-                    Icon(
-                      isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                      color: bTheme.shade300,
-                      size: 22,
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 1,
-                child: Text(
-                  "About Us",
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
+                    ],
                   ),
                 ),
               ),
-              PopupMenuItem(
-                value: 2,
-                child: Text(
-                  "Share App",
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-              PopupMenuItem(
-                value: 3,
-                child: Text(
-                  "Rate Us",
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-            ],
-            onSelected: (val) async {
-              if (val == 0) {
-                showTheme(MediaQuery.of(context).size.width, context);
-              } else if (val == 1) {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        about(isDark: isDark),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                    transitionDuration: const Duration(milliseconds: 220),
-                  ),
-                );
-              } else if (val == 2) {
-                Share.share(
-                  "Check out Calculator App in Google PlayStore https://play.google.com/store/apps/details?id=neriquest.calculator",
-                );
-              } else if (val == 3) {
-                openUrl(
-                  'https://play.google.com/store/apps/details?id=neriquest.calculator',
-                );
-              }
-            },
-          ),
-          const SizedBox(width: 4),
-        ],
+            ),
+          ),        ],
       ),
       body: GestureDetector(
         onVerticalDragEnd: (DragEndDetails details) {
@@ -571,54 +615,61 @@ class _HomeState extends State<Home> {
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              // Input TextField with bottom clearance for Scrollbar
-                              Container(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: Scrollbar(
-                                  thumbVisibility: false,
-                                  thickness: 3,
-                                  scrollbarOrientation: ScrollbarOrientation.bottom,
-                                  radius: const Radius.circular(8),
-                                  controller: scrollController,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: TextField(
-                                      onChanged: (changed) {
-                                        isEqual = 0;
-                                        // Handle pasting with auto Indian comma formatting
-                                        final String formatted = formatIndianExpression(changed);
-                                        if (formatted != changed) {
-                                          final int currentOffset = controller.selection.baseOffset.clamp(0, changed.length);
-                                          final int rawCur = changed.substring(0, currentOffset).replaceAll(',', '').length;
-                                          final int newCur = calculateFormattedCursor(formatted, rawCur);
-                                          controller.value = TextEditingValue(
-                                            text: formatted,
-                                            selection: TextSelection.collapsed(offset: newCur.clamp(0, formatted.length)),
-                                          );
-                                        }
-                                        calculate(false);
-                                        scrollTheExpression();
-                                      },
-                                      onTap: () {
-                                        scrollTheExpression();
-                                      },
-                                      scrollController: scrollController,
-                                      maxLines: 1,
-                                      textAlign: TextAlign.right,
-                                      autofocus: true,
-                                      style: GoogleFonts.ubuntuMono(
-                                        fontSize: eqSize,
-                                        color: eqColor,
-                                        letterSpacing: -0.5,
-                                      ),
-                                      cursorColor: bTheme.shade300,
-                                      textDirection: TextDirection.ltr,
-                                      cursorRadius: const Radius.circular(12),
-                                      keyboardType: TextInputType.none,
-                                      controller: controller,
-                                      textInputAction: TextInputAction.previous,
-                                      decoration: const InputDecoration.collapsed(
-                                        hintText: '',
+                              // Input TextField: Only input box is scrollable, typing starts bottom right, autoscale then vertical scale
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: ScrollbarTheme(
+                                    data: ScrollbarThemeData(
+                                      thumbColor: WidgetStateProperty.all(bTheme.shade300.withValues(alpha: 0.65)),
+                                      radius: const Radius.circular(8),
+                                      thickness: WidgetStateProperty.all(3.5),
+                                    ),
+                                    child: Scrollbar(
+                                      controller: scrollController,
+                                      thumbVisibility: true,
+                                      scrollbarOrientation: ScrollbarOrientation.right,
+                                      child: TextField(
+                                        onChanged: (changed) {
+                                          isEqual = 0;
+                                          // Handle pasting with auto Indian comma formatting
+                                          final String formatted = formatIndianExpression(changed);
+                                          if (formatted != changed) {
+                                            final int currentOffset = controller.selection.baseOffset.clamp(0, changed.length);
+                                            final int rawCur = changed.substring(0, currentOffset).replaceAll(',', '').length;
+                                            final int newCur = calculateFormattedCursor(formatted, rawCur);
+                                            controller.value = TextEditingValue(
+                                              text: formatted,
+                                              selection: TextSelection.collapsed(offset: newCur.clamp(0, formatted.length)),
+                                            );
+                                          }
+                                          calculate(false);
+                                          scrollTheExpression();
+                                        },
+                                        onTap: () {
+                                          scrollTheExpression();
+                                        },
+                                        scrollController: scrollController,
+                                        maxLines: null,
+                                        textAlign: TextAlign.right,
+                                        autofocus: true,
+                                        style: GoogleFonts.ubuntuMono(
+                                          fontSize: dynamicEqSize,
+                                          color: eqColor,
+                                          letterSpacing: -0.5,
+                                          height: 1.25,
+                                        ),
+                                        cursorColor: bTheme.shade300,
+                                        textDirection: TextDirection.ltr,
+                                        cursorRadius: const Radius.circular(12),
+                                        keyboardType: TextInputType.none,
+                                        controller: controller,
+                                        textInputAction: TextInputAction.previous,
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.only(right: 6, bottom: 4),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -2766,65 +2817,24 @@ class _HomeState extends State<Home> {
         return;
       }
 
-      final int cur = controller.selection.baseOffset.clamp(0, text.length);
       final double maxScroll = scrollController.position.maxScrollExtent;
-      final double viewportWidth = scrollController.position.viewportDimension;
-
-      // If text fits completely in the viewport, no scrolling needed
       if (maxScroll <= 0.0) return;
 
-      // When cursor is at the end (typing at the end of the expression):
-      // Smoothly scroll to the very end so newest digits stay pinned to the right edge
-      if (cur == text.length) {
+      final int cur = controller.selection.baseOffset.clamp(0, text.length);
+      // When cursor is at the end (typing normally at bottom right), keep scrolled to the bottom
+      if (cur >= text.length) {
         scrollController.animateTo(
           maxScroll,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
         );
-        return;
-      }
-
-      // When cursor is at the very beginning:
-      if (cur == 0) {
+      } else if (cur == 0) {
         scrollController.animateTo(
           0.0,
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
         );
-        return;
       }
-
-      // When typing or cursor is in between:
-      // Measure cursor X from the beginning of the text
-      final TextPainter tp = TextPainter(
-        text: TextSpan(
-          text: text.substring(0, cur),
-          style: GoogleFonts.ubuntuMono(
-            fontSize: eqSize,
-            letterSpacing: -0.5,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-
-      final double cursorX = tp.width;
-      final double currentOffset = scrollController.offset;
-      final double cursorScreenPos = cursorX - currentOffset;
-
-      // If cursor is already safely on screen with comfortable margin on both sides,
-      // don't unnecessarily scroll (keeps text to the right completely visible):
-      if (cursorScreenPos >= 40.0 && cursorScreenPos <= (viewportWidth - 40.0)) {
-        return;
-      }
-
-      // Otherwise, smoothly center the cursor in the viewport so both left
-      // and right context are clearly visible and never clipped/hidden
-      final double targetScroll = (cursorX - viewportWidth / 2).clamp(0.0, maxScroll);
-      scrollController.animateTo(
-        targetScroll,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      );
     });
   }
 

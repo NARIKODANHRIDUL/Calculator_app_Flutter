@@ -310,4 +310,33 @@ void main() {
     expect(finalWidget.style?.color, Colors.lightGreen.shade300);
     expect(finalWidget.style?.fontWeight, FontWeight.bold);
   });
+
+  testWidgets('Top right buttons in glass container and expression multiline vertical layout',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // Verify top right buttons are inside glass container (BackdropFilter inside AppBar)
+    final appBarFinder = find.byType(AppBar);
+    expect(
+      find.descendant(of: appBarFinder, matching: find.byType(BackdropFilter)),
+      findsOneWidget,
+    );
+
+    // Verify input TextField has maxLines: null for multiline vertical scaling
+    final inputTextField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(inputTextField.maxLines, isNull);
+    expect(inputTextField.textAlign, TextAlign.right);
+
+    // Initial short text font size is large (44.0)
+    await tester.tap(find.text('5'));
+    await tester.pumpAndSettle();
+    final updatedInput = tester.widget<TextField>(find.byType(TextField).first);
+    expect(updatedInput.style?.fontSize, 44.0);
+  });
 }
