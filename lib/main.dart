@@ -2036,11 +2036,11 @@ class _HomeState extends State<Home> {
   Widget historyListItem(int i) {
     final item = history[i];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           onTap: () {
             HapticFeedback.lightImpact();
             setState(() {
@@ -2049,14 +2049,15 @@ class _HomeState extends State<Home> {
             });
             Navigator.of(context).pop();
             calculate(false);
+            scrollTheExpression();
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.white.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.10)
@@ -2065,33 +2066,73 @@ class _HomeState extends State<Home> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
+                // Left content: Expression, Timestamp, Result
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
                         item[0],
                         style: GoogleFonts.ubuntuMono(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: isDark ? Colors.grey.shade300 : Colors.grey.shade800,
-                          height: 1.25,
+                          height: 1.22,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
+                      const SizedBox(height: 2),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            item[2],
+                            style: GoogleFonts.nunito(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          item[1],
+                          style: GoogleFonts.ubuntuMono(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: bTheme.shade300,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Right actions: Delete & Copy buttons
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     InkWell(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         HapticFeedback.lightImpact();
                         deleteHistory(context, i);
@@ -2102,7 +2143,7 @@ class _HomeState extends State<Home> {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: isDark ? 0.16 : 0.10),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: Colors.red.withValues(alpha: 0.35),
                             width: 1.2,
@@ -2115,60 +2156,9 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Text(
-                    item[1],
-                    style: GoogleFonts.ubuntuMono(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: bTheme.shade300,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : Colors.black.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.05),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.schedule_rounded,
-                            size: 12,
-                            color: Colors.grey.shade400,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            item[2],
-                            style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 6),
                     InkWell(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                       onTap: () async {
                         HapticFeedback.lightImpact();
                         await Clipboard.setData(ClipboardData(text: item[1]));
@@ -2178,7 +2168,7 @@ class _HomeState extends State<Home> {
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
                           color: bTheme.shade300.withValues(alpha: 0.20),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: bTheme.shade300.withValues(alpha: 0.40),
                             width: 1.2,
