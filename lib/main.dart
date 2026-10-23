@@ -2075,7 +2075,7 @@ class _HomeState extends State<Home> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Left content: Expression, Timestamp, Result
+                // Left content: Expression, Result, Timestamp (bottom-left)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2091,26 +2091,6 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.schedule_rounded,
-                            size: 11,
-                            color: Colors.grey.shade500,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            item[2],
-                            style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Text(
@@ -2121,6 +2101,26 @@ class _HomeState extends State<Home> {
                             color: bTheme.shade300,
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 10,
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
+                          ),
+                          const SizedBox(width: 3.5),
+                          Text(
+                            item[2],
+                            style: GoogleFonts.nunito(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
