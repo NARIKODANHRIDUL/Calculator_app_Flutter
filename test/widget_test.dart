@@ -222,6 +222,16 @@ void main() {
     expect(find.text('HEX :'), findsOneWidget);
     expect(find.text('BIN :'), findsOneWidget);
     expect(find.text('OCT :'), findsOneWidget);
+
+    // Switch to Binary: verify '0b' prefix widget is visible
+    await tester.tap(find.text('Binary'));
+    await tester.pumpAndSettle();
+    expect(find.text('0b'), findsOneWidget);
+
+    // Switch to Hexadecimal: verify '0x' prefix widget is visible
+    await tester.tap(find.text('Hexadecimal'));
+    await tester.pumpAndSettle();
+    expect(find.text('0x'), findsOneWidget);
   });
 
   testWidgets('Opening History bottom sheet works without crash',

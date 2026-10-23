@@ -1638,7 +1638,7 @@ class _HomeState extends State<Home> {
     if (system == 'Hexadecimal') return '0x';
     if (system == 'Binary') return '0b';
     if (system == 'Octal') return '0o';
-    return '0d';
+    return '';
   }
 
   void showHistory(BuildContext context) {
@@ -2143,7 +2143,7 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Right actions: Delete & Copy buttons
+                // Right actions: Delete & Copy buttons (soft, low-contrast)
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -2159,17 +2159,17 @@ class _HomeState extends State<Home> {
                         height: 38,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: isDark ? 0.16 : 0.10),
+                          color: Colors.red.withValues(alpha: isDark ? 0.08 : 0.05),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Colors.red.withValues(alpha: 0.35),
-                            width: 1.2,
+                            color: Colors.red.withValues(alpha: isDark ? 0.20 : 0.14),
+                            width: 1.0,
                           ),
                         ),
                         child: Icon(
                           Icons.delete_outline_rounded,
-                          size: 22,
-                          color: Colors.red.shade300,
+                          size: 20,
+                          color: (isDark ? Colors.red.shade200 : Colors.red.shade400).withValues(alpha: 0.70),
                         ),
                       ),
                     ),
@@ -2182,13 +2182,13 @@ class _HomeState extends State<Home> {
                         toastMsg("${item[1]} copied to Clipboard");
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
                         decoration: BoxDecoration(
-                          color: bTheme.shade300.withValues(alpha: 0.20),
+                          color: bTheme.shade300.withValues(alpha: isDark ? 0.10 : 0.07),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: bTheme.shade300.withValues(alpha: 0.40),
-                            width: 1.2,
+                            color: bTheme.shade300.withValues(alpha: isDark ? 0.22 : 0.18),
+                            width: 1.0,
                           ),
                         ),
                         child: Row(
@@ -2196,16 +2196,16 @@ class _HomeState extends State<Home> {
                           children: [
                             Icon(
                               Icons.copy_rounded,
-                              size: 16,
-                              color: bTheme.shade300,
+                              size: 15,
+                              color: bTheme.shade300.withValues(alpha: 0.80),
                             ),
                             const SizedBox(width: 5),
                             Text(
                               "Copy",
                               style: GoogleFonts.nunito(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: bTheme.shade300,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: bTheme.shade300.withValues(alpha: 0.80),
                                 letterSpacing: 0.2,
                               ),
                             ),
@@ -2422,42 +2422,46 @@ class _HomeState extends State<Home> {
                                     ],
                                   ),
                                 child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: convertController,
-                                        onChanged: (_) => convert(setttState),
-                                        style: GoogleFonts.ubuntuMono(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark ? Colors.white : Colors.black87,
-                                        ),
-                                        cursorColor: bTheme.shade300,
-                                        cursorRadius: const Radius.circular(8),
-                                        maxLines: 1,
-                                        textAlign: TextAlign.left,
-                                        keyboardType: TextInputType.none,
-                                        decoration: InputDecoration(
-                                          border: InputBorder.none,
-                                          prefix: Padding(
-                                            padding: const EdgeInsets.only(right: 6),
-                                            child: Text(
-                                              getBasePrefix(converterSelectedItem),
-                                              style: GoogleFonts.ubuntuMono(
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.bold,
-                                                color: bTheme.shade300,
-                                              ),
-                                            ),
-                                          ),
-                                          hintText: '0',
-                                          hintStyle: GoogleFonts.ubuntuMono(
-                                            color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (convertController.text.isNotEmpty)
+                                   children: [
+                                     if (getBasePrefix(converterSelectedItem).isNotEmpty) ...[
+                                       Text(
+                                         getBasePrefix(converterSelectedItem),
+                                         style: GoogleFonts.ubuntuMono(
+                                           fontSize: 22,
+                                           fontWeight: FontWeight.bold,
+                                           color: bTheme.shade300,
+                                         ),
+                                       ),
+                                       const SizedBox(width: 4),
+                                     ],
+                                     Expanded(
+                                       child: TextField(
+                                         controller: convertController,
+                                         onChanged: (_) => convert(setttState),
+                                         style: GoogleFonts.ubuntuMono(
+                                           fontSize: 22,
+                                           fontWeight: FontWeight.w700,
+                                           color: isDark ? Colors.white : Colors.black87,
+                                         ),
+                                         cursorColor: bTheme.shade300,
+                                         cursorRadius: const Radius.circular(8),
+                                         maxLines: 1,
+                                         textAlign: TextAlign.left,
+                                         keyboardType: TextInputType.none,
+                                         decoration: InputDecoration(
+                                           border: InputBorder.none,
+                                           isDense: true,
+                                           contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                                           hintText: converterSelectedItem == 'Decimal' ? '0' : '',
+                                           hintStyle: GoogleFonts.ubuntuMono(
+                                             fontSize: 22,
+                                             fontWeight: FontWeight.w700,
+                                             color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                                           ),
+                                         ),
+                                       ),
+                                     ),
+                                     if (convertController.text.isNotEmpty)
                                       IconButton(
                                         icon: Icon(
                                           Icons.cancel_rounded,
