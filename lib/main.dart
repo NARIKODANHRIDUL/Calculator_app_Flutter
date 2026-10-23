@@ -520,6 +520,9 @@ class _HomeState extends State<Home> {
             final verticalDivider = SizedBox(width: hGap);
             final verticalDivider2 = SizedBox(width: hGap);
 
+            final Color baseBoxColor = isDark ? const Color(0xFF0C0E14) : const Color(0xFFF3F5F8);
+            final Color topGradientColor = Color.alphaBlend(bTheme.withValues(alpha: 0.40), baseBoxColor);
+
             return Column(
               children: [
                 Expanded(
@@ -535,18 +538,10 @@ class _HomeState extends State<Home> {
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: isDark
-                                ? [
-                                    bTheme.withValues(alpha: 0.40),
-                                    bTheme.withValues(alpha: 0.12),
-                                    const Color(0xFF0F1015),
-                                  ]
-                                : [
-                                    bTheme.withValues(alpha: 0.40),
-                                    bTheme.withValues(alpha: 0.12),
-                                    const Color(0xFFF2F4F8),
-                                  ],
-                            stops: const [0.0, 0.45, 1.0],
+                            colors: [
+                              topGradientColor,
+                              baseBoxColor,
+                            ],
                           ),
                           border: Border(
                             bottom: BorderSide(
@@ -2037,11 +2032,11 @@ class _HomeState extends State<Home> {
   Widget historyListItem(int i) {
     final item = history[i];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           onTap: () {
             HapticFeedback.lightImpact();
             setState(() {
@@ -2052,99 +2047,100 @@ class _HomeState extends State<Home> {
             calculate(false);
           },
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.white.withValues(alpha: 0.80),
-              borderRadius: BorderRadius.circular(20),
+                  : Colors.white.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.12)
+                    ? Colors.white.withValues(alpha: 0.10)
                     : Colors.white.withValues(alpha: 0.90),
-                width: 1.2,
+                width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Text(
                         item[0],
                         style: GoogleFonts.ubuntuMono(
-                          fontSize: 17,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: isDark ? Colors.grey.shade300 : Colors.grey.shade800,
-                          height: 1.35,
+                          height: 1.25,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       onTap: () {
                         HapticFeedback.lightImpact();
                         deleteHistory(context, i);
                       },
                       child: Container(
-                        width: 50,
-                        height: 50,
+                        width: 38,
+                        height: 38,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: isDark ? 0.18 : 0.12),
-                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.red.withValues(alpha: isDark ? 0.16 : 0.10),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.red.withValues(alpha: 0.40),
-                            width: 1.5,
+                            color: Colors.red.withValues(alpha: 0.35),
+                            width: 1.2,
                           ),
                         ),
                         child: Icon(
                           Icons.delete_outline_rounded,
-                          size: 28,
+                          size: 22,
                           color: Colors.red.shade300,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Text(
                     item[1],
                     style: GoogleFonts.ubuntuMono(
-                      fontSize: 26,
+                      fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: bTheme.shade300,
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.07)
-                            : Colors.black.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(12),
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.black.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isDark
-                              ? Colors.white.withValues(alpha: 0.10)
-                              : Colors.black.withValues(alpha: 0.06),
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.05),
                           width: 1,
                         ),
                       ),
@@ -2152,14 +2148,14 @@ class _HomeState extends State<Home> {
                         children: [
                           Icon(
                             Icons.schedule_rounded,
-                            size: 15,
+                            size: 12,
                             color: Colors.grey.shade400,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 4),
                           Text(
                             item[2],
                             style: GoogleFonts.nunito(
-                              fontSize: 13,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey.shade400,
                             ),
@@ -2168,20 +2164,20 @@ class _HomeState extends State<Home> {
                       ),
                     ),
                     InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       onTap: () async {
                         HapticFeedback.lightImpact();
                         await Clipboard.setData(ClipboardData(text: item[1]));
                         toastMsg("${item[1]} copied to Clipboard");
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: bTheme.shade300.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(16),
+                          color: bTheme.shade300.withValues(alpha: 0.20),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: bTheme.shade300.withValues(alpha: 0.45),
-                            width: 1.5,
+                            color: bTheme.shade300.withValues(alpha: 0.40),
+                            width: 1.2,
                           ),
                         ),
                         child: Row(
@@ -2189,17 +2185,17 @@ class _HomeState extends State<Home> {
                           children: [
                             Icon(
                               Icons.copy_rounded,
-                              size: 22,
+                              size: 16,
                               color: bTheme.shade300,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 5),
                             Text(
                               "Copy",
                               style: GoogleFonts.nunito(
-                                fontSize: 16,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: bTheme.shade300,
-                                letterSpacing: 0.3,
+                                letterSpacing: 0.2,
                               ),
                             ),
                           ],
