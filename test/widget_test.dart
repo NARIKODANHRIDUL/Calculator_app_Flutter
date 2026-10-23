@@ -233,4 +233,38 @@ void main() {
     expect(find.text('History'), findsOneWidget);
     expect(find.text('End of History'), findsOneWidget);
   });
+
+  testWidgets('Output color is preview before equal and accent after equal',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // Type 9 + 3
+    await tester.tap(find.text('9'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('3'));
+    await tester.pumpAndSettle();
+
+    // Answer text is 12 (preview)
+    final previewTextFinder = find.text('12');
+    expect(previewTextFinder, findsOneWidget);
+    final Text previewWidget = tester.widget<Text>(previewTextFinder);
+    expect(previewWidget.style?.color, Colors.white60);
+
+    // Tap =
+    await tester.tap(find.text('='));
+    await tester.pumpAndSettle();
+
+    // Answer text is now accent colored (shade300 of default theme lightGreen)
+    final finalTextFinder = find.text('12');
+    final Text finalWidget = tester.widget<Text>(finalTextFinder);
+    expect(finalWidget.style?.color, Colors.lightGreen.shade300);
+  });
 }

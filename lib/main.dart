@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -252,18 +253,34 @@ class _HomeState extends State<Home> {
       bTheme = Colors.orange;
     }
 
+    final ColorScheme colorScheme = isDark
+        ? ColorScheme.dark(
+            primary: bTheme,
+            secondary: bTheme.shade300,
+            onSecondary: const Color(0xFFC7CBD1),
+            surface: const Color(0xFF161922),
+            onSurface: Colors.white,
+          )
+        : ColorScheme.light(
+            primary: bTheme,
+            secondary: bTheme.shade700,
+            onSecondary: const Color(0xFF4A4E54),
+            surface: Colors.white,
+            onSurface: Colors.black,
+          );
+
     if (isDark) {
       bgColor = const Color.fromARGB(255, 0, 0, 0);
-      topBox = const Color(0xFF131416);
+      topBox = const Color(0xFF242832);
       resultColor = bTheme.shade300;
-      eqColor = Colors.grey.shade100;
-      buttonColor = const Color.fromARGB(255, 14, 14, 14);
+      eqColor = colorScheme.onSecondary;
+      buttonColor = const Color(0xFF16181D);
     } else {
       bgColor = const Color.fromARGB(255, 235, 235, 238);
       topBox = Colors.white;
       resultColor = bTheme.shade700;
-      eqColor = Colors.grey.shade800;
-      buttonColor = const Color.fromARGB(255, 225, 225, 228);
+      eqColor = colorScheme.onSecondary;
+      buttonColor = const Color(0xFFE8E9ED);
     }
 
     return Scaffold(
@@ -497,33 +514,35 @@ class _HomeState extends State<Home> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  Color(0xFF131416),
-                                  Color(0xFF0F1012),
-                                  Color(0xFF0A0B0D),
+                                  Color(0xFF242832),
+                                  Color(0xFF161920),
+                                  Color(0xFF0D0F13),
                                 ],
-                                stops: [0.0, 0.6, 1.0],
+                                stops: [0.0, 0.5, 1.0],
                               )
                             : const LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Color(0xFFFFFFFF),
-                                  Color(0xFFF7F7FA),
+                                  Color(0xFFF1F3F7),
+                                  Color(0xFFE5E8EF),
                                 ],
+                                stops: [0.0, 0.5, 1.0],
                               ),
                         border: Border(
                           bottom: BorderSide(
                             color: isDark
-                                ? Colors.white.withValues(alpha: 0.08)
+                                ? Colors.white.withValues(alpha: 0.12)
                                 : Colors.black.withValues(alpha: 0.08),
-                            width: 1,
+                            width: 1.2,
                           ),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -548,6 +567,7 @@ class _HomeState extends State<Home> {
                                     padding: const EdgeInsets.only(bottom: 8),
                                     child: TextField(
                                       onChanged: (changed) {
+                                        isEqual = 0;
                                         // Handle pasting with auto Indian comma formatting
                                         final String formatted = formatIndianExpression(changed);
                                         if (formatted != changed) {
@@ -615,7 +635,9 @@ class _HomeState extends State<Home> {
                                                     answer == "-Infinity" ||
                                                     answer == "Keep it real")
                                                 ? const Color.fromARGB(255, 252, 114, 63)
-                                                : resultColor,
+                                                : ((isEqual > 0 && isEqual % 2 == 1)
+                                                    ? resultColor
+                                                    : (isDark ? Colors.white60 : Colors.black45)),
                                             fontSize: resultSize,
                                           ),
                                           textAlign: TextAlign.right,
@@ -742,8 +764,16 @@ class _HomeState extends State<Home> {
       width: btnWidth,
       height: btnHeight,
       elevation: 0,
-      backgroundColor: Colors.transparent,
+      backgroundColor: isDark
+          ? Colors.white.withValues(alpha: 0.04)
+          : Colors.black.withValues(alpha: 0.03),
       foregroundColor: bTheme.shade300,
+      borderSide: BorderSide(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.06),
+        width: 1,
+      ),
       onLongPress: () {
         setState(() {
           if (tag == "log₁₀") {
@@ -873,9 +903,11 @@ class _HomeState extends State<Home> {
       foregroundColor: fgColor,
       elevation: (isOperator(tag) || tag == '=') ? 4 : 2,
       borderSide: BorderSide(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : Colors.black.withValues(alpha: 0.04),
+        color: (isOperator(tag) || tag == '=')
+            ? Colors.white.withValues(alpha: isDark ? 0.25 : 0.45)
+            : (isDark
+                ? Colors.white.withValues(alpha: 0.09)
+                : Colors.white.withValues(alpha: 0.70)),
         width: 1,
       ),
       onLongPress: () {
@@ -1153,16 +1185,20 @@ class _HomeState extends State<Home> {
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
-        return AlertDialog(
-          elevation: 20,
-          backgroundColor: topBox,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              width: 2,
-              color: isDark ? Colors.white12 : Colors.black12,
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: AlertDialog(
+            elevation: 20,
+            backgroundColor: isDark
+                ? const Color(0xFF161922).withValues(alpha: 0.90)
+                : Colors.white.withValues(alpha: 0.94),
+            shape: RoundedRectangleBorder(
+              side: BorderSide(
+                width: 1.5,
+                color: isDark ? Colors.white.withValues(alpha: 0.14) : Colors.white,
+              ),
+              borderRadius: const BorderRadius.all(Radius.circular(28.0)),
             ),
-            borderRadius: const BorderRadius.all(Radius.circular(28.0)),
-          ),
           title: Center(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -1234,7 +1270,7 @@ class _HomeState extends State<Home> {
               ),
             ),
           ],
-        );
+        ));
       },
     );
   }
@@ -1599,104 +1635,134 @@ class _HomeState extends State<Home> {
               topLeft: Radius.circular(32),
               topRight: Radius.circular(32),
             ),
-            child: DraggableScrollableSheet(
-              expand: false,
-              initialChildSize: 0.55,
-              maxChildSize: 0.88,
-              minChildSize: 0.28,
-              builder: (context, sheetScrollController) => Container(
-                color: isDark ? const Color(0xFF101114) : const Color(0xFFF7F7F9),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    // Drag indicator handle
-                    Container(
-                      width: 40,
-                      height: 4.5,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white24 : Colors.black26,
-                        borderRadius: BorderRadius.circular(10),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: DraggableScrollableSheet(
+                expand: false,
+                initialChildSize: 0.55,
+                maxChildSize: 0.88,
+                minChildSize: 0.28,
+                builder: (context, sheetScrollController) => Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF12141A).withValues(alpha: 0.88)
+                        : Colors.white.withValues(alpha: 0.92),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(32),
+                      topRight: Radius.circular(32),
+                    ),
+                    border: Border(
+                      top: BorderSide(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : Colors.white.withValues(alpha: 0.9),
+                        width: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    // Modern Header Bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      // Drag indicator handle
+                      Container(
+                        width: 40,
+                        height: 4.5,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white24 : Colors.black26,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Centered Header Bar
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        child: SizedBox(
+                          height: 48,
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Text(
-                                'History',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 34,
-                                  color: bTheme.shade300,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: bTheme.shade300.withValues(alpha: 0.16),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '${history.length}',
-                                  style: GoogleFonts.ubuntuMono(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: bTheme.shade300,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (history.isNotEmpty)
-                            InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                HapticFeedback.lightImpact();
-                                deleteHistory(context, -1);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.red.withValues(alpha: 0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.delete_sweep_rounded,
-                                      size: 18,
-                                      color: Colors.red.shade300,
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'History',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 32,
+                                      color: bTheme.shade300,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
                                     ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Clear All',
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.red.shade300,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: bTheme.shade300.withValues(alpha: 0.16),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: bTheme.shade300.withValues(alpha: 0.3),
+                                        width: 1,
                                       ),
                                     ),
-                                  ],
-                                ),
+                                    child: Text(
+                                      '${history.length}',
+                                      style: GoogleFonts.ubuntuMono(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: bTheme.shade300,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                        ],
+                              if (history.isNotEmpty)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () {
+                                      HapticFeedback.lightImpact();
+                                      deleteHistory(context, -1);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: Colors.red.withValues(alpha: 0.3),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.delete_sweep_rounded,
+                                            size: 16,
+                                            color: Colors.red.shade300,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Clear',
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.red.shade300,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
                     Divider(
                       height: 12,
                       thickness: 1,
@@ -1779,6 +1845,7 @@ class _HomeState extends State<Home> {
               ),
             ),
           ),
+        ),
         ],
       ),
     );
@@ -1790,128 +1857,148 @@ class _HomeState extends State<Home> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       enableDrag: true,
-      backgroundColor: isDark ? const Color(0xFF141518) : Colors.white,
+      backgroundColor: Colors.transparent,
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.black26,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+      builder: (ctx) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF12141A).withValues(alpha: 0.92)
+                  : Colors.white.withValues(alpha: 0.95),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border(
+                top: BorderSide(
+                  color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.white,
+                  width: 1.2,
                 ),
               ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white24 : Colors.black26,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
-                    child: Icon(
-                      Icons.delete_outline_rounded,
-                      color: Colors.red.shade400,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 18),
+                    Row(
                       children: [
-                        Text(
-                          (index == -1) ? "Clear All History?" : "Delete Calculation?",
-                          style: GoogleFonts.nunito(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: isDark ? Colors.white : Colors.black87,
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.delete_outline_rounded,
+                            color: Colors.red.shade400,
+                            size: 26,
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          (index == -1)
-                              ? "This will remove all saved calculations permanently."
-                              : "This item will be removed from your history list.",
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            color: Colors.grey.shade500,
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                (index == -1) ? "Clear All History?" : "Delete Calculation?",
+                                style: GoogleFonts.nunito(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                (index == -1)
+                                    ? "This will remove all saved calculations permanently."
+                                    : "This item will be removed from your history list.",
+                                style: GoogleFonts.nunito(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 22),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                    const SizedBox(height: 22),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: Text(
+                              "Cancel",
+                              style: GoogleFonts.nunito(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        "Cancel",
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                if (index == -1) {
+                                  history.clear();
+                                } else if (index >= 0 && index < history.length) {
+                                  history.removeAt(index);
+                                }
+                              });
+                              save();
+                              Navigator.of(ctx).pop();
+                              Navigator.of(context).pop();
+                              showHistory(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: Colors.red.shade400,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: Text(
+                              (index == -1) ? "Clear All" : "Delete",
+                              style: GoogleFonts.nunito(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        setState(() {
-                          if (index == -1) {
-                            history.clear();
-                          } else if (index >= 0 && index < history.length) {
-                            history.removeAt(index);
-                          }
-                        });
-                        save();
-                        Navigator.of(ctx).pop();
-                        Navigator.of(context).pop();
-                        showHistory(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: Colors.red.shade400,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: Text(
-                        (index == -1) ? "Clear All" : "Delete",
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1938,19 +2025,21 @@ class _HomeState extends State<Home> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF141518) : Colors.white,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.white.withValues(alpha: 0.80),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.07)
-                    : Colors.black.withValues(alpha: 0.07),
-                width: 1,
+                    ? Colors.white.withValues(alpha: 0.12)
+                    : Colors.white.withValues(alpha: 0.90),
+                width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -2099,143 +2188,174 @@ class _HomeState extends State<Home> {
                       topLeft: Radius.circular(32),
                       topRight: Radius.circular(32),
                     ),
-                    child: SingleChildScrollView(
-                      child: Container(
-                        color: isDark ? const Color(0xFF101114) : const Color(0xFFF7F7F9),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 12),
-                            // Drag handle indicator
-                            Container(
-                              width: 40,
-                              height: 4.5,
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.white24 : Colors.black26,
-                                borderRadius: BorderRadius.circular(10),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: SingleChildScrollView(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF12141A).withValues(alpha: 0.88)
+                                : Colors.white.withValues(alpha: 0.92),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(32),
+                              topRight: Radius.circular(32),
+                            ),
+                            border: Border(
+                              top: BorderSide(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : Colors.white.withValues(alpha: 0.9),
+                                width: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            // Header Bar
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 12),
+                              // Drag handle indicator
+                              Container(
+                                width: 40,
+                                height: 4.5,
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white24 : Colors.black26,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              // Centered Header Bar
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                child: SizedBox(
+                                  height: 52,
+                                  child: Stack(
+                                    alignment: Alignment.center,
                                     children: [
-                                      Text(
-                                        'Converter',
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 34,
-                                          color: bTheme.shade300,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: -0.5,
-                                        ),
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Converter',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 32,
+                                              color: bTheme.shade300,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: -0.5,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Base-2, 8, 10 & 16 Number Conversion',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 12,
+                                              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Text(
-                                        'Base-2, 8, 10 & 16 Number Conversion',
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 12,
-                                          color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.close_rounded,
+                                            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                            size: 24,
+                                          ),
+                                          onPressed: () {
+                                            HapticFeedback.lightImpact();
+                                            Navigator.of(context).pop();
+                                          },
                                         ),
                                       ),
                                     ],
                                   ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.close_rounded,
-                                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                                      size: 24,
-                                    ),
-                                    onPressed: () {
-                                      HapticFeedback.lightImpact();
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                            Divider(
-                              height: 12,
-                              thickness: 1,
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.06)
-                                  : Colors.black.withValues(alpha: 0.06),
-                            ),
-                            // Segmented Base Selector Pills
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                              child: Row(
-                                children: converterItems.map((item) {
-                                  final bool isSelected = item == converterSelectedItem;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(20),
-                                      onTap: () {
-                                        HapticFeedback.lightImpact();
-                                        setttState(() {
-                                          converterSelectedItem = item;
-                                          convertController.text = '';
-                                          convert(setttState);
-                                        });
-                                      },
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 140),
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? bTheme.shade300
-                                              : (isDark
-                                                  ? Colors.white.withValues(alpha: 0.05)
-                                                  : Colors.black.withValues(alpha: 0.05)),
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(
+                              Divider(
+                                height: 12,
+                                thickness: 1,
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.black.withValues(alpha: 0.06),
+                              ),
+                              // Segmented Base Selector Pills
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                child: Row(
+                                  children: converterItems.map((item) {
+                                    final bool isSelected = item == converterSelectedItem;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(20),
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          setttState(() {
+                                            converterSelectedItem = item;
+                                            convertController.text = '';
+                                            convert(setttState);
+                                          });
+                                        },
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 140),
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
                                             color: isSelected
                                                 ? bTheme.shade300
-                                                : (isDark ? Colors.white12 : Colors.black12),
-                                            width: 1,
+                                                : (isDark
+                                                    ? Colors.white.withValues(alpha: 0.06)
+                                                    : Colors.black.withValues(alpha: 0.04)),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: isSelected
+                                                  ? bTheme.shade300
+                                                  : (isDark
+                                                      ? Colors.white.withValues(alpha: 0.12)
+                                                      : Colors.black.withValues(alpha: 0.08)),
+                                              width: 1,
+                                            ),
                                           ),
-                                        ),
-                                        child: Text(
-                                          item,
-                                          style: GoogleFonts.nunito(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: isSelected
-                                                ? (isDark ? Colors.grey.shade900 : Colors.white)
-                                                : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
+                                          child: Text(
+                                            item,
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: isSelected
+                                                  ? (isDark ? Colors.grey.shade900 : Colors.white)
+                                                  : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            // Modern Input Card
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF16171A) : Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: bTheme.shade300.withValues(alpha: 0.45),
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: bTheme.shade300.withValues(alpha: 0.08),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
+                                    );
+                                  }).toList(),
                                 ),
+                              ),
+                              // Modern Input Card
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.white.withValues(alpha: 0.80),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: bTheme.shade300.withValues(alpha: 0.50),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: bTheme.shade300.withValues(alpha: 0.10),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
                                 child: Row(
                                   children: [
                                     Expanded(
@@ -2375,6 +2495,7 @@ class _HomeState extends State<Home> {
                       ),
                     ),
                   ),
+                ),
                 ],
               ),
             );
@@ -2395,14 +2516,14 @@ class _HomeState extends State<Home> {
         elevation: 2,
         backgroundColor: (hex == 'DE' || hex == 'AC')
             ? bTheme.shade100.withValues(alpha: 0.35)
-            : (isDark ? const Color(0xFF1C1D21) : Colors.white),
+            : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white),
         foregroundColor: (hex == 'DE' || hex == 'AC')
             ? (isDark ? bTheme.shade200 : bTheme.shade800)
             : (isDark ? Colors.grey.shade100 : Colors.grey.shade900),
         borderSide: BorderSide(
           color: (hex == 'DE' || hex == 'AC')
               ? bTheme.shade300.withValues(alpha: 0.3)
-              : (isDark ? Colors.white10 : Colors.black12),
+              : (isDark ? Colors.white.withValues(alpha: 0.10) : Colors.black12),
           width: 1,
         ),
         onLongPress: () {
@@ -2482,18 +2603,20 @@ class _HomeState extends State<Home> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF16171A) : Colors.white,
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.04)
+              : Colors.white.withValues(alpha: 0.80),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isDark
-                ? bTheme.shade300.withValues(alpha: 0.22)
-                : bTheme.shade300.withValues(alpha: 0.35),
-            width: 1,
+                ? Colors.white.withValues(alpha: 0.10)
+                : Colors.white.withValues(alpha: 0.90),
+            width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.04),
-              blurRadius: 6,
+              blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
