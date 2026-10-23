@@ -2069,104 +2069,128 @@ class _HomeState extends State<Home> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Text(
                         item[0],
                         style: GoogleFonts.ubuntuMono(
-                          fontSize: 16,
+                          fontSize: 17,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                          color: isDark ? Colors.grey.shade300 : Colors.grey.shade800,
+                          height: 1.35,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 10),
                     InkWell(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       onTap: () {
                         HapticFeedback.lightImpact();
                         deleteHistory(context, i);
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: isDark ? 0.12 : 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.red.withValues(alpha: 0.25),
+                            width: 1,
+                          ),
+                        ),
                         child: Icon(
-                          Icons.close_rounded,
-                          size: 18,
-                          color: Colors.grey.shade600,
+                          Icons.delete_outline_rounded,
+                          size: 22,
+                          color: Colors.red.shade300,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  item[1],
-                  style: GoogleFonts.ubuntuMono(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: bTheme.shade300,
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                    item[1],
+                    style: GoogleFonts.ubuntuMono(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: bTheme.shade300,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(8),
+                            ? Colors.white.withValues(alpha: 0.06)
+                            : Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.schedule_rounded,
-                            size: 12,
-                            color: Colors.grey.shade500,
+                            size: 13,
+                            color: Colors.grey.shade400,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 5),
                           Text(
                             item[2],
                             style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey.shade500,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade400,
                             ),
                           ),
                         ],
                       ),
                     ),
                     InkWell(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(14),
                       onTap: () async {
                         HapticFeedback.lightImpact();
                         await Clipboard.setData(ClipboardData(text: item[1]));
                         toastMsg("${item[1]} copied to Clipboard");
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: bTheme.shade300.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
+                          color: bTheme.shade300.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: bTheme.shade300.withValues(alpha: 0.35),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.copy_rounded,
-                              size: 13,
+                              size: 18,
                               color: bTheme.shade300,
                             ),
-                            const SizedBox(width: 5),
+                            const SizedBox(width: 6),
                             Text(
                               "Copy",
                               style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
                                 color: bTheme.shade300,
+                                letterSpacing: 0.2,
                               ),
                             ),
                           ],
