@@ -295,10 +295,12 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: true,
       backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: topBox,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         title: const SizedBox.shrink(),
         actions: [
           Center(
@@ -501,8 +503,11 @@ class _HomeState extends State<Home> {
             final double screenHeight = constraints.maxHeight;
             final double keypadWidth = screenWidth.clamp(0.0, 480.0);
 
-            // Dynamically scale button sizes to fit screenHeight without overflowing
-            final double maxKeypadHeight = screenHeight * 0.68;
+            final double topAreaHeight = MediaQuery.of(context).padding.top + kToolbarHeight;
+            final double availableHeight = (screenHeight - topAreaHeight).clamp(200.0, screenHeight);
+
+            // Dynamically scale button sizes to fit availableHeight without overflowing
+            final double maxKeypadHeight = availableHeight * 0.68;
             final double defaultButtonSize = keypadWidth * 0.22;
             final double buttonSize = (defaultButtonSize * 5.5 + 56 > maxKeypadHeight)
                 ? ((maxKeypadHeight - 56) / 5.5).clamp(28.0, defaultButtonSize)
@@ -527,27 +532,22 @@ class _HomeState extends State<Home> {
                       filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
                       child: Container(
                         decoration: BoxDecoration(
-                          gradient: isDark
-                              ? const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Color(0xFF282B36),
-                                    Color(0xFF181A22),
-                                    Color(0xFF0F1015),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: isDark
+                                ? [
+                                    bTheme.withValues(alpha: 0.40),
+                                    bTheme.withValues(alpha: 0.12),
+                                    const Color(0xFF0F1015),
+                                  ]
+                                : [
+                                    bTheme.withValues(alpha: 0.40),
+                                    bTheme.withValues(alpha: 0.12),
+                                    const Color(0xFFF2F4F8),
                                   ],
-                                  stops: [0.0, 0.5, 1.0],
-                                )
-                              : const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Color(0xFFFFFFFF),
-                                    Color(0xFFF1F3F7),
-                                    Color(0xFFE5E8EF),
-                                  ],
-                                  stops: [0.0, 0.5, 1.0],
-                                ),
+                            stops: const [0.0, 0.45, 1.0],
+                          ),
                           border: Border(
                             bottom: BorderSide(
                               color: isDark
@@ -564,13 +564,17 @@ class _HomeState extends State<Home> {
                             ),
                           ],
                         ),
-                      child: Align(
-                        alignment: Alignment.bottomRight,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.end,
+                        child: Column(
+                          children: [
+                            SizedBox(height: topAreaHeight),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.bottomRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               // Input TextField with bottom clearance for Scrollbar
                               Container(
@@ -671,9 +675,12 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
+            ),
+          ),
+        ),
                 SafeArea(
                   top: false,
                   child: Center(
@@ -2082,26 +2089,28 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     InkWell(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       onTap: () {
                         HapticFeedback.lightImpact();
                         deleteHistory(context, i);
                       },
                       child: Container(
-                        padding: const EdgeInsets.all(8),
+                        width: 50,
+                        height: 50,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: isDark ? 0.12 : 0.08),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.red.withValues(alpha: isDark ? 0.18 : 0.12),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.red.withValues(alpha: 0.25),
-                            width: 1,
+                            color: Colors.red.withValues(alpha: 0.40),
+                            width: 1.5,
                           ),
                         ),
                         child: Icon(
                           Icons.delete_outline_rounded,
-                          size: 22,
+                          size: 28,
                           color: Colors.red.shade300,
                         ),
                       ),
@@ -2120,21 +2129,21 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
+                            ? Colors.white.withValues(alpha: 0.07)
                             : Colors.black.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
+                              ? Colors.white.withValues(alpha: 0.10)
                               : Colors.black.withValues(alpha: 0.06),
                           width: 1,
                         ),
@@ -2143,14 +2152,14 @@ class _HomeState extends State<Home> {
                         children: [
                           Icon(
                             Icons.schedule_rounded,
-                            size: 13,
+                            size: 15,
                             color: Colors.grey.shade400,
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 6),
                           Text(
                             item[2],
                             style: GoogleFonts.nunito(
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey.shade400,
                             ),
@@ -2159,20 +2168,20 @@ class _HomeState extends State<Home> {
                       ),
                     ),
                     InkWell(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                       onTap: () async {
                         HapticFeedback.lightImpact();
                         await Clipboard.setData(ClipboardData(text: item[1]));
                         toastMsg("${item[1]} copied to Clipboard");
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
                         decoration: BoxDecoration(
-                          color: bTheme.shade300.withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(14),
+                          color: bTheme.shade300.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: bTheme.shade300.withValues(alpha: 0.35),
-                            width: 1,
+                            color: bTheme.shade300.withValues(alpha: 0.45),
+                            width: 1.5,
                           ),
                         ),
                         child: Row(
@@ -2180,17 +2189,17 @@ class _HomeState extends State<Home> {
                           children: [
                             Icon(
                               Icons.copy_rounded,
-                              size: 18,
+                              size: 22,
                               color: bTheme.shade300,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
                             Text(
                               "Copy",
                               style: GoogleFonts.nunito(
-                                fontSize: 14,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 color: bTheme.shade300,
-                                letterSpacing: 0.2,
+                                letterSpacing: 0.3,
                               ),
                             ),
                           ],
