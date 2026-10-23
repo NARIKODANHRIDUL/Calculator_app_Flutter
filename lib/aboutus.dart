@@ -196,7 +196,7 @@ class about extends StatelessWidget {
                             fontWeight: FontWeight.w500),
                       ),
                       subtitle: Text(
-                        "1.0.22+23",
+                        "1.0.23+24",
                         style: GoogleFonts.firaSans(
                           color: subtitle,
                         ),

@@ -82,10 +82,10 @@ class _HomeState extends State<Home> {
   int cursor = 0;
   String converterStrBfrCursor = '';
   int converterCursor = 0;
-  String binaryValue = '';
-  String octalValue = '';
-  String decimalValue = '';
-  String hexValue = '';
+  String binaryValue = '0';
+  String octalValue = '0';
+  String decimalValue = '0';
+  String hexValue = '0';
   String logx = "log₁₀";
 
   Color bgColor = const Color.fromARGB(255, 0, 0, 0);
@@ -660,6 +660,7 @@ class _HomeState extends State<Home> {
                                                     ? resultColor
                                                     : (isDark ? Colors.white60 : Colors.black45)),
                                             fontSize: resultSize,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                           textAlign: TextAlign.right,
                                         ),
@@ -1522,10 +1523,10 @@ class _HomeState extends State<Home> {
           .replaceAll('_', '');
 
       if (text.isEmpty) {
-        binaryValue = '';
-        decimalValue = '';
-        octalValue = '';
-        hexValue = '';
+        binaryValue = '0';
+        decimalValue = '0';
+        octalValue = '0';
+        hexValue = '0';
         return;
       }
 
@@ -1550,10 +1551,10 @@ class _HomeState extends State<Home> {
       }
 
       if (text.isEmpty) {
-        binaryValue = '';
-        decimalValue = '';
-        octalValue = '';
-        hexValue = '';
+        binaryValue = '0';
+        decimalValue = '0';
+        octalValue = '0';
+        hexValue = '0';
         return;
       }
 
@@ -2035,6 +2036,10 @@ class _HomeState extends State<Home> {
 
   Widget historyListItem(int i) {
     final item = history[i];
+    final Color timeColor = isDark
+        ? const Color(0xFFC7CBD1).withValues(alpha: 0.65)
+        : const Color(0xFF4A4E54).withValues(alpha: 0.70);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
       child: Material(
@@ -2054,9 +2059,21 @@ class _HomeState extends State<Home> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.white.withValues(alpha: 0.85),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        Colors.white.withValues(alpha: 0.08),
+                        bTheme.shade400.withValues(alpha: 0.04),
+                        Colors.white.withValues(alpha: 0.02),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.95),
+                        bTheme.shade100.withValues(alpha: 0.25),
+                        Colors.white.withValues(alpha: 0.80),
+                      ],
+              ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isDark
@@ -2109,7 +2126,7 @@ class _HomeState extends State<Home> {
                           Icon(
                             Icons.schedule_rounded,
                             size: 10,
-                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
+                            color: timeColor,
                           ),
                           const SizedBox(width: 3.5),
                           Text(
@@ -2117,7 +2134,7 @@ class _HomeState extends State<Home> {
                             style: GoogleFonts.nunito(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
+                              color: timeColor,
                             ),
                           ),
                         ],
@@ -2422,11 +2439,16 @@ class _HomeState extends State<Home> {
                                         keyboardType: TextInputType.none,
                                         decoration: InputDecoration(
                                           border: InputBorder.none,
-                                          prefixText: '${getBasePrefix(converterSelectedItem)} ',
-                                          prefixStyle: GoogleFonts.ubuntuMono(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: bTheme.shade300,
+                                          prefix: Padding(
+                                            padding: const EdgeInsets.only(right: 6),
+                                            child: Text(
+                                              getBasePrefix(converterSelectedItem),
+                                              style: GoogleFonts.ubuntuMono(
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                                color: bTheme.shade300,
+                                              ),
+                                            ),
                                           ),
                                           hintText: '0',
                                           hintStyle: GoogleFonts.ubuntuMono(
@@ -2691,11 +2713,11 @@ class _HomeState extends State<Home> {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Text(
-                  displayValue.isEmpty ? '-' : displayValue,
+                  (displayValue.isEmpty || displayValue == '-') ? '0' : displayValue,
                   style: GoogleFonts.ubuntuMono(
                     fontSize: 18,
                     color: isDark ? Colors.grey.shade200 : Colors.grey.shade800,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -2708,9 +2730,10 @@ class _HomeState extends State<Home> {
               ),
               tooltip: "Copy $badge",
               onPressed: () async {
-                if (displayValue.isNotEmpty && displayValue != 'Invalid' && displayValue != '-') {
+                final String valToCopy = (displayValue.isEmpty || displayValue == '-') ? '0' : displayValue;
+                if (valToCopy != 'Invalid') {
                   await Clipboard.setData(
-                    ClipboardData(text: displayValue.replaceAll(',', '')),
+                    ClipboardData(text: valToCopy.replaceAll(',', '')),
                   );
                   toastMsg('$badge copied');
                 } else {

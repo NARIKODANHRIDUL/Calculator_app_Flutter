@@ -264,6 +264,7 @@ void main() {
     expect(previewTextFinder, findsOneWidget);
     final Text previewWidget = tester.widget<Text>(previewTextFinder);
     expect(previewWidget.style?.color, Colors.white60);
+    expect(previewWidget.style?.fontWeight, FontWeight.bold);
 
     // Tap =
     await tester.tap(find.text('='));
@@ -273,5 +274,6 @@ void main() {
     final finalTextFinder = find.text('12');
     final Text finalWidget = tester.widget<Text>(finalTextFinder);
     expect(finalWidget.style?.color, Colors.lightGreen.shade300);
+    expect(finalWidget.style?.fontWeight, FontWeight.bold);
   });
 }
