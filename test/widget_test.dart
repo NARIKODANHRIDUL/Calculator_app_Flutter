@@ -338,5 +338,29 @@ void main() {
     await tester.pumpAndSettle();
     final updatedInput = tester.widget<TextField>(find.byType(TextField).first);
     expect(updatedInput.style?.fontSize, 44.0);
+
+    // Verify AnimatedSize wraps the input for smooth height transition
+    expect(find.byType(AnimatedSize), findsWidgets);
+  });
+
+  testWidgets('Numbers like 10,000 never split across lines with ZWSP at operators',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(720, 1560);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    final textField = tester.widget<TextField>(find.byType(TextField).first);
+    textField.controller?.text = '10,000×10,000×10,000×10,000';
+    await tester.pumpAndSettle();
+
+    final span = textField.controller?.buildTextSpan(
+      context: tester.element(find.byType(TextField).first),
+      withComposing: false,
+    );
+    expect(span?.toPlainText(), contains('×\u200B'));
   });
 }

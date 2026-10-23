@@ -69,6 +69,26 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
+class CalculatorTextEditingController extends TextEditingController {
+  CalculatorTextEditingController({String? text}) : super(text: text);
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    // Insert zero-width space after operators so line breaks only occur at operator boundaries,
+    // ensuring numbers (e.g. 10,000) are never split across lines.
+    final rawText = text;
+    final rendered = rawText.replaceAllMapped(
+      RegExp(r'([\+–×\*÷/\-])'),
+      (m) => '${m.group(1)}\u200B',
+    );
+    return TextSpan(text: rendered, style: style);
+  }
+}
+
 class _HomeState extends State<Home> {
   late TextEditingController controller;
   late TextEditingController convertController;
@@ -136,7 +156,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController();
+    controller = CalculatorTextEditingController();
     convertController = TextEditingController();
     scrollController = ScrollController();
     scrollController1 = ScrollController();
@@ -629,7 +649,11 @@ class _HomeState extends State<Home> {
                                       controller: scrollController,
                                       thumbVisibility: true,
                                       scrollbarOrientation: ScrollbarOrientation.right,
-                                      child: TextField(
+                                      child: AnimatedSize(
+                                        duration: const Duration(milliseconds: 240),
+                                        curve: Curves.easeOutCubic,
+                                        alignment: Alignment.bottomRight,
+                                        child: TextField(
                                         onChanged: (changed) {
                                           isEqual = 0;
                                           // Handle pasting with auto Indian comma formatting
@@ -672,6 +696,7 @@ class _HomeState extends State<Home> {
                                         ),
                                       ),
                                     ),
+                                      ),
                                   ),
                                 ),
                               ),
@@ -2825,14 +2850,14 @@ class _HomeState extends State<Home> {
       if (cur >= text.length) {
         scrollController.animateTo(
           maxScroll,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
         );
       } else if (cur == 0) {
         scrollController.animateTo(
           0.0,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
         );
       }
     });
