@@ -585,7 +585,10 @@ class _HomeState extends State<Home> {
             final verticalDivider2 = SizedBox(width: hGap);
 
             final Color baseBoxColor = isDark ? const Color(0xFF0C0E14) : const Color(0xFFF3F5F8);
-            final Color topGradientColor = Color.alphaBlend(bTheme.withValues(alpha: 0.40), baseBoxColor);
+            final Color topGradientColor = Color.alphaBlend(
+              bTheme.withValues(alpha: isDark ? 0.30 : 0.35),
+              baseBoxColor,
+            );
 
             return Column(
               children: [
@@ -605,7 +608,9 @@ class _HomeState extends State<Home> {
                             colors: [
                               topGradientColor,
                               baseBoxColor,
+                              baseBoxColor,
                             ],
+                            stops: const [0.0, 0.35, 1.0],
                           ),
                           border: Border(
                             bottom: BorderSide(
