@@ -2422,14 +2422,19 @@ class _HomeState extends State<Home> {
                                     ],
                                   ),
                                 child: Row(
+                                   crossAxisAlignment: CrossAxisAlignment.baseline,
+                                   textBaseline: TextBaseline.alphabetic,
                                    children: [
                                      if (getBasePrefix(converterSelectedItem).isNotEmpty) ...[
-                                       Text(
-                                         getBasePrefix(converterSelectedItem),
-                                         style: GoogleFonts.ubuntuMono(
-                                           fontSize: 22,
-                                           fontWeight: FontWeight.bold,
-                                           color: bTheme.shade300,
+                                       Padding(
+                                         padding: const EdgeInsets.only(top: 1.2),
+                                         child: Text(
+                                           getBasePrefix(converterSelectedItem),
+                                           style: GoogleFonts.ubuntuMono(
+                                             fontSize: 22,
+                                             fontWeight: FontWeight.bold,
+                                             color: bTheme.shade300,
+                                           ),
                                          ),
                                        ),
                                        const SizedBox(width: 4),
@@ -2451,7 +2456,7 @@ class _HomeState extends State<Home> {
                                          decoration: InputDecoration(
                                            border: InputBorder.none,
                                            isDense: true,
-                                           contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                                           contentPadding: EdgeInsets.zero,
                                            hintText: converterSelectedItem == 'Decimal' ? '0' : '',
                                            hintStyle: GoogleFonts.ubuntuMono(
                                              fontSize: 22,

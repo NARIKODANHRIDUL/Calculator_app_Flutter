@@ -232,6 +232,12 @@ void main() {
     await tester.tap(find.text('Hexadecimal'));
     await tester.pumpAndSettle();
     expect(find.text('0x'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(MorphingCalculatorButton, '7').last);
+    await tester.pumpAndSettle();
+    final prefixRect = tester.getRect(find.text('0x'));
+    final editableRect = tester.getRect(find.byType(EditableText).last);
+    expect((prefixRect.bottom - editableRect.bottom).abs(), lessThan(2.0));
   });
 
   testWidgets('Opening History bottom sheet works without crash',
