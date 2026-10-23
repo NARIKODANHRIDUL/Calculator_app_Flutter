@@ -45,3 +45,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Keystores and signing credentials
+*.jks
+*.keystore
+android/key.properties
+key.properties
+
+# Google Play Service Account API keys
+*service-account*.json
+play-service-account.json
+android/play-service-account.json

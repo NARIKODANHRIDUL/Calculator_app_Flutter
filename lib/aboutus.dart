@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
 //import 'main.dart';
 
-// ignore: must_be_immutable
+// ignore: must_be_immutable, camel_case_types
 class about extends StatelessWidget {
   bool isDark;
   about({
@@ -14,9 +14,9 @@ class about extends StatelessWidget {
         required this.isDark,
       })
       : super(key: key);
-  Color bgcolor = Color.fromRGBO(16, 16, 16, 1);
+  Color bgcolor = const Color.fromRGBO(16, 16, 16, 1);
   Color txtcolor = Colors.grey.shade300;
-  Color title = Color.fromARGB(228, 255, 255, 255);
+  Color title = const Color.fromARGB(228, 255, 255, 255);
   Color subtitle = Colors.white70;
   Color greyy = Colors.black;
   int s = 0;
@@ -46,8 +46,8 @@ class about extends StatelessWidget {
                   Navigator.of(context).pop();
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.all(0),
-                  shape: RoundedRectangleBorder(
+                  padding: const EdgeInsets.all(0),
+                  shape: const RoundedRectangleBorder(
                     
                       borderRadius: BorderRadius.only(
                           bottomRight: Radius.circular(18),
@@ -62,7 +62,7 @@ class about extends StatelessWidget {
                 ),
               ),
               flexibleSpace: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(20),
@@ -80,7 +80,7 @@ class about extends StatelessWidget {
                         color: Colors.grey,
                       )),
                 ),
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   size: 28,
                   color: Colors.grey
@@ -96,11 +96,11 @@ class about extends StatelessWidget {
               Container(
                 width: wid,
                 color: greyy,
-                child: Image(
+                child: const Image(
                   image: AssetImage("images/calc.png"),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 15,
               ),
               Center(
@@ -117,19 +117,19 @@ class about extends StatelessWidget {
                 "Made in India, with love & passion",
                 style: GoogleFonts.poppins(color: Colors.grey.shade700),
               )),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               Container(
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(25),
                       topRight: Radius.circular(25),
                     ),
                     color: bgcolor),
                 child: Column(
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 15,
                     ),
                     ListTile(
@@ -196,7 +196,7 @@ class about extends StatelessWidget {
                             fontWeight: FontWeight.w500),
                       ),
                       subtitle: Text(
-                        "1.0.6+7",
+                        "1.0.13+14",
                         style: GoogleFonts.firaSans(
                           color: subtitle,
                         ),
@@ -313,7 +313,7 @@ class about extends StatelessWidget {
                       height: 25,
                       thickness: 1,
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Padding(
                         padding: const EdgeInsets.only(
                             bottom: 15.0, left: 15.0, right: 15.0, top: 5),
@@ -342,7 +342,7 @@ Thank you
   ''',
                                     style: GoogleFonts.firaSans(
                                       fontSize: (0.051 * wid),
-                                      color: txtcolor.withOpacity(0.7),
+                                      color: txtcolor.withValues(alpha: 0.7),
                                     ),
                                   ),
                                   TextSpan(
@@ -350,13 +350,13 @@ Thank you
                                         '''© NeriQuest\n English (United States)''',
                                     style: TextStyle(
                                       fontSize: (0.051 * wid),
-                                      color: txtcolor.withOpacity(0.7),
+                                      color: txtcolor.withValues(alpha: 0.7),
                                     ),
                                   )
                                 ]))),
                     Transform.scale(
                       scale: 0.8,
-                      child: Image(
+                      child: const Image(
                         image: AssetImage("images/neriquest.png"),
                       ),
                     ),

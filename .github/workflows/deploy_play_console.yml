@@ -1,0 +1,85 @@
+name: Deploy to Google Play Console
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Google Play Track (internal, alpha, beta, production)'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+      status:
+        description: 'Release status (completed, draft, inProgress)'
+        required: true
+        default: 'completed'
+        type: choice
+        options:
+          - completed
+          - draft
+          - inProgress
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  deploy:
+    name: Build & Publish to Play Console
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.PLAY_KEYSTORE_BASE64 }}
+          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          fi
+          if [ -n "$KEY_PROPERTIES" ]; then
+            echo "$KEY_PROPERTIES" > android/key.properties
+          fi
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release
+
+      - name: Decode Play Service Account Key
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$PLAY_SERVICE_ACCOUNT_JSON" > android/play-service-account.json
+
+      - name: Publish to Google Play Console
+        env:
+          TRACK: ${{ inputs.track || 'internal' }}
+          STATUS: ${{ inputs.status || 'completed' }}
+        run: |
+          dart run tool/publish_to_play_console.dart \
+            --key-file=android/play-service-account.json \
+            --track=$TRACK \
+            --status=$STATUS

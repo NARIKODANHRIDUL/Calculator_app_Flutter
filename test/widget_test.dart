@@ -1,30 +1,236 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calculator/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    GoogleFonts.config.allowRuntimeFetching = false;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMessageHandler('flutter/assets', (ByteData? message) async {
+      final String asset = String.fromCharCodes(message!.buffer.asUint8List());
+      if (asset == 'AssetManifest.json') {
+        return ByteData.view(Uint8List.fromList('{}'.codeUnits).buffer);
+      }
+      return null;
+    });
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
-    // Tap the '+' icon and trigger a frame.
+  testWidgets('Calculator app smoke test and UI rendering without overflow',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('AC'), findsOneWidget);
+    expect(find.text('()'), findsOneWidget);
+    expect(find.text('÷'), findsOneWidget);
+    expect(find.text('='), findsOneWidget);
+    expect(find.text('7'), findsOneWidget);
+  });
+
+  testWidgets('Calculation flow test: 7 + 5 = 12',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('7'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('5'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('='));
+    await tester.pumpAndSettle();
+
+    expect(find.text('12'), findsOneWidget);
+  });
+
+  testWidgets('AC clears the expression', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('9'));
+    await tester.pumpAndSettle();
+    expect(find.text('9'), findsWidgets);
+
+    await tester.tap(find.text('AC'));
+    await tester.pumpAndSettle();
+
+    final textField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(textField.controller?.text, '');
+  });
+
+  testWidgets('Delete D removes last character',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('9'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('8'));
+    await tester.pumpAndSettle();
+
+    final textField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(textField.controller?.text, '98');
+
+    await tester.tap(find.byIcon(Icons.backspace));
+    await tester.pumpAndSettle();
+
+    expect(textField.controller?.text, '9');
+  });
+
+  testWidgets('Indian comma formatting and backspace functionality',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // Type 1,00,000
+    await tester.tap(find.text('1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('0'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('0'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('0'));
+    await tester.pumpAndSettle();
+
+    final textField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(textField.controller?.text, '1,000');
+
+    await tester.tap(find.text('0'));
+    await tester.pumpAndSettle();
+    expect(textField.controller?.text, '10,000');
+
+    await tester.tap(find.text('0'));
+    await tester.pumpAndSettle();
+    expect(textField.controller?.text, '1,00,000');
+
+    // Backspace: 1,00,000 -> 10,000
+    await tester.tap(find.byIcon(Icons.backspace));
+    await tester.pumpAndSettle();
+    expect(textField.controller?.text, '10,000');
+
+    // Multiply: 10,000 × 50 = 5,00,000
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('5'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('0'));
+    await tester.pumpAndSettle();
+
+    expect(textField.controller?.text, '10,000×50');
+
+    await tester.tap(find.text('='));
+    await tester.pumpAndSettle();
+
+    expect(find.text('5,00,000'), findsOneWidget);
+  });
+
+  testWidgets('Button morphing animation changes container border radius',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    final buttonFinder = find.ancestor(
+      of: find.text('7'),
+      matching: find.byType(AnimatedContainer),
+    );
+    expect(buttonFinder, findsOneWidget);
+
+    AnimatedContainer container = tester.widget<AnimatedContainer>(buttonFinder);
+    BoxDecoration decoration = container.decoration as BoxDecoration;
+    expect(decoration.borderRadius, BorderRadius.circular(300));
+
+    // Press down
+    final gesture = await tester.startGesture(tester.getCenter(find.text('7')));
+    await tester.pump(const Duration(milliseconds: 280));
+
+    container = tester.widget<AnimatedContainer>(buttonFinder);
+    decoration = container.decoration as BoxDecoration;
+    expect(decoration.borderRadius, BorderRadius.circular(18));
+
+    // Release
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    container = tester.widget<AnimatedContainer>(buttonFinder);
+    decoration = container.decoration as BoxDecoration;
+    expect(decoration.borderRadius, BorderRadius.circular(300));
+  });
+
+  testWidgets('Opening Converter bottom sheet works without crash',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.swap_horiz_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Converter'), findsOneWidget);
+    expect(find.text('HEX :'), findsOneWidget);
+    expect(find.text('BIN :'), findsOneWidget);
+    expect(find.text('OCT :'), findsOneWidget);
+  });
+
+  testWidgets('Opening History bottom sheet works without crash',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.history));
+    await tester.pumpAndSettle();
+
+    expect(find.text('History'), findsOneWidget);
+    expect(find.text('End of History'), findsOneWidget);
   });
 }
