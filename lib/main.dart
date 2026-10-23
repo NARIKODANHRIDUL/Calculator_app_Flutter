@@ -42,9 +42,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.grey,
-        useMaterial3: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        canvasColor: Colors.black,
+        cardColor: const Color(0xFF161922),
+        dialogTheme: const DialogThemeData(
+          backgroundColor: Color(0xFF161922),
+        ),
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.lightGreen,
+          surface: Color(0xFF161922),
+          onSurface: Colors.white,
+          onSecondary: Color(0xFFC7CBD1),
+        ),
       ),
       debugShowCheckedModeBanner: false,
       home: const Home(),
@@ -454,8 +464,14 @@ class _HomeState extends State<Home> {
               } else if (val == 1) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => about(isDark: isDark),
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        about(isDark: isDark),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
+                    transitionDuration: const Duration(milliseconds: 220),
                   ),
                 );
               } else if (val == 2) {
@@ -504,48 +520,50 @@ class _HomeState extends State<Home> {
                 Expanded(
                   child: ClipRRect(
                     borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
+                      bottomLeft: Radius.circular(32),
+                      bottomRight: Radius.circular(32),
                     ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: isDark
-                            ? const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Color(0xFF242832),
-                                  Color(0xFF161920),
-                                  Color(0xFF0D0F13),
-                                ],
-                                stops: [0.0, 0.5, 1.0],
-                              )
-                            : const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Color(0xFFFFFFFF),
-                                  Color(0xFFF1F3F7),
-                                  Color(0xFFE5E8EF),
-                                ],
-                                stops: [0.0, 0.5, 1.0],
-                              ),
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.12)
-                                : Colors.black.withValues(alpha: 0.08),
-                            width: 1.2,
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: isDark
+                              ? const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFF282B36),
+                                    Color(0xFF181A22),
+                                    Color(0xFF0F1015),
+                                  ],
+                                  stops: [0.0, 0.5, 1.0],
+                                )
+                              : const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFFFFFFFF),
+                                    Color(0xFFF1F3F7),
+                                    Color(0xFFE5E8EF),
+                                  ],
+                                  stops: [0.0, 0.5, 1.0],
+                                ),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.16)
+                                  : Colors.black.withValues(alpha: 0.08),
+                              width: 1.2,
+                            ),
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.38 : 0.08),
+                              blurRadius: 18,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
                       child: Align(
                         alignment: Alignment.bottomRight,
                         child: Padding(
@@ -655,6 +673,7 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
+              ),
                 SafeArea(
                   top: false,
                   child: Center(
@@ -861,16 +880,16 @@ class _HomeState extends State<Home> {
               : const EdgeInsets.all(0),
           child: Transform.scale(
             scale: (tag == "log₁₀")
-                ? 1.30
+                ? 0.90
                 : (tag == "log₂")
-                    ? 1.20
+                    ? 1.05
                     : (tag == "ln")
                         ? 1.05
                         : 1.0,
             child: Text(
               tag,
               style: GoogleFonts.ubuntuMono(
-                fontSize: 20,
+                fontSize: (tag == "log₁₀") ? 16 : 20,
                 fontWeight: FontWeight.w500,
                 color: bTheme.shade300,
               ),
@@ -1620,6 +1639,7 @@ class _HomeState extends State<Home> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(32),
@@ -1636,7 +1656,7 @@ class _HomeState extends State<Home> {
               topRight: Radius.circular(32),
             ),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: DraggableScrollableSheet(
                 expand: false,
                 initialChildSize: 0.55,
@@ -1645,7 +1665,7 @@ class _HomeState extends State<Home> {
                 builder: (context, sheetScrollController) => Container(
                   decoration: BoxDecoration(
                     color: isDark
-                        ? const Color(0xFF12141A).withValues(alpha: 0.88)
+                        ? const Color(0xFF1C1D24).withValues(alpha: 0.84)
                         : Colors.white.withValues(alpha: 0.92),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(32),
@@ -1654,8 +1674,8 @@ class _HomeState extends State<Home> {
                     border: Border(
                       top: BorderSide(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.15)
-                            : Colors.white.withValues(alpha: 0.9),
+                            ? Colors.white.withValues(alpha: 0.20)
+                            : Colors.white,
                         width: 1.2,
                       ),
                     ),
@@ -1665,10 +1685,12 @@ class _HomeState extends State<Home> {
                       const SizedBox(height: 12),
                       // Drag indicator handle
                       Container(
-                        width: 40,
-                        height: 4.5,
+                        width: 38,
+                        height: 5,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white24 : Colors.black26,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.28)
+                              : Colors.black.withValues(alpha: 0.22),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -1677,7 +1699,7 @@ class _HomeState extends State<Home> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         child: SizedBox(
-                          height: 48,
+                          height: 52,
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
@@ -2166,6 +2188,7 @@ class _HomeState extends State<Home> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(32),
@@ -2189,12 +2212,12 @@ class _HomeState extends State<Home> {
                       topRight: Radius.circular(32),
                     ),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                       child: SingleChildScrollView(
                         child: Container(
                           decoration: BoxDecoration(
                             color: isDark
-                                ? const Color(0xFF12141A).withValues(alpha: 0.88)
+                                ? const Color(0xFF1C1D24).withValues(alpha: 0.84)
                                 : Colors.white.withValues(alpha: 0.92),
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(32),
@@ -2203,8 +2226,8 @@ class _HomeState extends State<Home> {
                             border: Border(
                               top: BorderSide(
                                 color: isDark
-                                    ? Colors.white.withValues(alpha: 0.15)
-                                    : Colors.white.withValues(alpha: 0.9),
+                                    ? Colors.white.withValues(alpha: 0.20)
+                                    : Colors.white,
                                 width: 1.2,
                               ),
                             ),
@@ -2215,10 +2238,12 @@ class _HomeState extends State<Home> {
                               const SizedBox(height: 12),
                               // Drag handle indicator
                               Container(
-                                width: 40,
-                                height: 4.5,
+                                width: 38,
+                                height: 5,
                                 decoration: BoxDecoration(
-                                  color: isDark ? Colors.white24 : Colors.black26,
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.28)
+                                      : Colors.black.withValues(alpha: 0.22),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
@@ -2227,7 +2252,7 @@ class _HomeState extends State<Home> {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                 child: SizedBox(
-                                  height: 52,
+                                  height: 68,
                                   child: Stack(
                                     alignment: Alignment.center,
                                     children: [
@@ -2762,30 +2787,59 @@ class MorphingCalculatorButton extends StatefulWidget {
 class _MorphingCalculatorButtonState
     extends State<MorphingCalculatorButton> {
   bool _isPressed = false;
+  DateTime? _pointerDownTime;
+  Timer? _releaseTimer;
+
+  void _handlePointerDown() {
+    _releaseTimer?.cancel();
+    _pointerDownTime = DateTime.now();
+    HapticFeedback.lightImpact();
+    if (!_isPressed) {
+      setState(() {
+        _isPressed = true;
+      });
+    }
+  }
+
+  void _handlePointerUp() {
+    final downTime = _pointerDownTime;
+    const minHoldDuration = Duration(milliseconds: 200);
+
+    if (downTime != null) {
+      final elapsed = DateTime.now().difference(downTime);
+      if (elapsed < minHoldDuration) {
+        _releaseTimer?.cancel();
+        _releaseTimer = Timer(minHoldDuration - elapsed, () {
+          if (mounted) {
+            setState(() {
+              _isPressed = false;
+            });
+          }
+        });
+        return;
+      }
+    }
+
+    _releaseTimer?.cancel();
+    if (mounted) {
+      setState(() {
+        _isPressed = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _releaseTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Listener(
-      onPointerDown: (_) {
-        HapticFeedback.lightImpact();
-        setState(() {
-          _isPressed = true;
-        });
-      },
-      onPointerUp: (_) {
-        if (_isPressed) {
-          setState(() {
-            _isPressed = false;
-          });
-        }
-      },
-      onPointerCancel: (_) {
-        if (_isPressed) {
-          setState(() {
-            _isPressed = false;
-          });
-        }
-      },
+      onPointerDown: (_) => _handlePointerDown(),
+      onPointerUp: (_) => _handlePointerUp(),
+      onPointerCancel: (_) => _handlePointerUp(),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
@@ -2796,8 +2850,8 @@ class _MorphingCalculatorButtonState
           widget.onLongPress?.call();
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeInOutCubic,
+          duration: Duration(milliseconds: _isPressed ? 180 : 320),
+          curve: _isPressed ? Curves.easeOutCubic : Curves.easeInOutCubic,
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
