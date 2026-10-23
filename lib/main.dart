@@ -597,6 +597,10 @@ class _HomeState extends State<Home> {
                                           );
                                         }
                                         calculate(false);
+                                        scrollTheExpression();
+                                      },
+                                      onTap: () {
+                                        scrollTheExpression();
                                       },
                                       scrollController: scrollController,
                                       maxLines: 1,
@@ -2730,19 +2734,79 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void scrollTheExpression(String strBfrCursor) {
+  void scrollTheExpression([String? _]) {
     if (!scrollController.hasClients) return;
-    if (cursor == controller.text.length - 1) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.easeInOut,
-          );
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!scrollController.hasClients) return;
+
+      final text = controller.text;
+      if (text.isEmpty) {
+        if (scrollController.offset != 0.0) {
+          scrollController.jumpTo(0.0);
         }
-      });
-    }
+        return;
+      }
+
+      final int cur = controller.selection.baseOffset.clamp(0, text.length);
+      final double maxScroll = scrollController.position.maxScrollExtent;
+      final double viewportWidth = scrollController.position.viewportDimension;
+
+      // If text fits completely in the viewport, no scrolling needed
+      if (maxScroll <= 0.0) return;
+
+      // When cursor is at the end (typing at the end of the expression):
+      // Smoothly scroll to the very end so newest digits stay pinned to the right edge
+      if (cur == text.length) {
+        scrollController.animateTo(
+          maxScroll,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+        );
+        return;
+      }
+
+      // When cursor is at the very beginning:
+      if (cur == 0) {
+        scrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+        );
+        return;
+      }
+
+      // When typing or cursor is in between:
+      // Measure cursor X from the beginning of the text
+      final TextPainter tp = TextPainter(
+        text: TextSpan(
+          text: text.substring(0, cur),
+          style: GoogleFonts.ubuntuMono(
+            fontSize: eqSize,
+            letterSpacing: -0.5,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      final double cursorX = tp.width;
+      final double currentOffset = scrollController.offset;
+      final double cursorScreenPos = cursorX - currentOffset;
+
+      // If cursor is already safely on screen with comfortable margin on both sides,
+      // don't unnecessarily scroll (keeps text to the right completely visible):
+      if (cursorScreenPos >= 40.0 && cursorScreenPos <= (viewportWidth - 40.0)) {
+        return;
+      }
+
+      // Otherwise, smoothly center the cursor in the viewport so both left
+      // and right context are clearly visible and never clipped/hidden
+      final double targetScroll = (cursorX - viewportWidth / 2).clamp(0.0, maxScroll);
+      scrollController.animateTo(
+        targetScroll,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   String getMonthName(int month) {
