@@ -2345,65 +2345,77 @@ class _HomeState extends State<Home> {
                                     ? Colors.white.withValues(alpha: 0.06)
                                     : Colors.black.withValues(alpha: 0.06),
                               ),
-                              // Segmented Base Selector Pills
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
+                              // Segmented TabBar
+                              Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                child: Row(
-                                  children: converterItems.map((item) {
-                                    final bool isSelected = item == converterSelectedItem;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(20),
-                                        onTap: () {
-                                          HapticFeedback.lightImpact();
-                                          setttState(() {
-                                            converterSelectedItem = item;
-                                            convertController.text = '';
-                                            convert(setttState);
-                                          });
-                                        },
-                                        child: AnimatedContainer(
-                                          duration: const Duration(milliseconds: 140),
-                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? bTheme.shade300
-                                                : (isDark
-                                                    ? Colors.white.withValues(alpha: 0.06)
-                                                    : Colors.black.withValues(alpha: 0.04)),
-                                            borderRadius: BorderRadius.circular(20),
-                                            border: Border.all(
-                                              color: isSelected
-                                                  ? bTheme.shade300
-                                                  : (isDark
-                                                      ? Colors.white.withValues(alpha: 0.12)
-                                                      : Colors.black.withValues(alpha: 0.08)),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            item,
-                                            style: GoogleFonts.nunito(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected
-                                                  ? (isDark ? Colors.grey.shade900 : Colors.white)
-                                                  : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
-                                            ),
-                                          ),
-                                        ),
+                                child: DefaultTabController(
+                                  length: converterItems.length,
+                                  initialIndex: converterItems.indexOf(converterSelectedItem),
+                                  child: Container(
+                                    height: 44,
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.06)
+                                          : Colors.black.withValues(alpha: 0.05),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? Colors.white.withValues(alpha: 0.08)
+                                            : Colors.black.withValues(alpha: 0.06),
+                                        width: 1,
                                       ),
-                                    );
-                                  }).toList(),
+                                    ),
+                                    child: TabBar(
+                                      onTap: (index) {
+                                        HapticFeedback.lightImpact();
+                                        setttState(() {
+                                          converterSelectedItem = converterItems[index];
+                                          convertController.text = '';
+                                          convert(setttState);
+                                        });
+                                      },
+                                      indicator: BoxDecoration(
+                                        color: bTheme.shade300,
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      indicatorSize: TabBarIndicatorSize.tab,
+                                      dividerColor: Colors.transparent,
+                                      labelColor: isDark ? Colors.grey.shade900 : Colors.white,
+                                      unselectedLabelColor: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                      labelStyle: GoogleFonts.nunito(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                      unselectedLabelStyle: GoogleFonts.nunito(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      tabs: converterItems.map((item) => Tab(
+                                        height: 36,
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(item),
+                                        ),
+                                      )).toList(),
+                                    ),
+                                  ),
                                 ),
                               ),
-                              // Modern Input Card
+                              // Modern Input Card (Fixed Height 56px)
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                  height: 56,
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
                                   decoration: BoxDecoration(
                                     color: isDark
                                         ? Colors.white.withValues(alpha: 0.05)
@@ -2421,71 +2433,56 @@ class _HomeState extends State<Home> {
                                       ),
                                     ],
                                   ),
-                                child: Row(
-                                   crossAxisAlignment: CrossAxisAlignment.baseline,
-                                   textBaseline: TextBaseline.alphabetic,
-                                   children: [
-                                     if (getBasePrefix(converterSelectedItem).isNotEmpty) ...[
-                                       Padding(
-                                         padding: const EdgeInsets.only(top: 1.2),
-                                         child: Text(
-                                           getBasePrefix(converterSelectedItem),
-                                           style: GoogleFonts.ubuntuMono(
-                                             fontSize: 22,
-                                             fontWeight: FontWeight.bold,
-                                             color: bTheme.shade300,
-                                           ),
-                                         ),
-                                       ),
-                                       const SizedBox(width: 4),
-                                     ],
-                                     Expanded(
-                                       child: TextField(
-                                         controller: convertController,
-                                         onChanged: (_) => convert(setttState),
-                                         style: GoogleFonts.ubuntuMono(
-                                           fontSize: 22,
-                                           fontWeight: FontWeight.w700,
-                                           color: isDark ? Colors.white : Colors.black87,
-                                         ),
-                                         cursorColor: bTheme.shade300,
-                                         cursorRadius: const Radius.circular(8),
-                                         maxLines: 1,
-                                         textAlign: TextAlign.left,
-                                         keyboardType: TextInputType.none,
-                                         decoration: InputDecoration(
-                                           border: InputBorder.none,
-                                           isDense: true,
-                                           contentPadding: EdgeInsets.zero,
-                                           hintText: converterSelectedItem == 'Decimal' ? '0' : '',
-                                           hintStyle: GoogleFonts.ubuntuMono(
-                                             fontSize: 22,
-                                             fontWeight: FontWeight.w700,
-                                             color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
-                                           ),
-                                         ),
-                                       ),
-                                     ),
-                                     if (convertController.text.isNotEmpty)
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.cancel_rounded,
-                                          size: 20,
-                                          color: Colors.grey.shade500,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                                    textBaseline: TextBaseline.alphabetic,
+                                    children: [
+                                      if (getBasePrefix(converterSelectedItem).isNotEmpty) ...[
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 1.2),
+                                          child: Text(
+                                            getBasePrefix(converterSelectedItem),
+                                            style: GoogleFonts.ubuntuMono(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              color: bTheme.shade300,
+                                            ),
+                                          ),
                                         ),
-                                        onPressed: () {
-                                          HapticFeedback.lightImpact();
-                                          setttState(() {
-                                            convertController.text = '';
-                                            convert(setttState);
-                                          });
-                                        },
+                                        const SizedBox(width: 4),
+                                      ],
+                                      Expanded(
+                                        child: TextField(
+                                          controller: convertController,
+                                          onChanged: (_) => convert(setttState),
+                                          style: GoogleFonts.ubuntuMono(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : Colors.black87,
+                                          ),
+                                          cursorColor: bTheme.shade300,
+                                          cursorRadius: const Radius.circular(8),
+                                          maxLines: 1,
+                                          textAlign: TextAlign.left,
+                                          keyboardType: TextInputType.none,
+                                          decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            isDense: true,
+                                            contentPadding: EdgeInsets.zero,
+                                            hintText: converterSelectedItem == 'Decimal' ? '0' : '',
+                                            hintStyle: GoogleFonts.ubuntuMono(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w700,
+                                              color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            // Modern Keypad
+                              // Modern Keypad
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               child: Column(

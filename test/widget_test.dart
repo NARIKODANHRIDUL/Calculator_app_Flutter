@@ -219,6 +219,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Converter'), findsOneWidget);
+    expect(find.byType(TabBar), findsOneWidget);
     expect(find.text('HEX :'), findsOneWidget);
     expect(find.text('BIN :'), findsOneWidget);
     expect(find.text('OCT :'), findsOneWidget);
@@ -233,8 +234,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('0x'), findsOneWidget);
 
+    // Find input card container before typing
+    final inputCardFinder = find.ancestor(
+      of: find.byType(TextField).last,
+      matching: find.byType(Container),
+    ).first;
+    final sizeBeforeTyping = tester.getSize(inputCardFinder);
+    expect(sizeBeforeTyping.height, 56.0);
+
+    // Type '7'
     await tester.tap(find.widgetWithText(MorphingCalculatorButton, '7').last);
     await tester.pumpAndSettle();
+
+    // Verify input card height remains exactly 56.0 after typing (no height jumping)
+    final sizeAfterTyping = tester.getSize(inputCardFinder);
+    expect(sizeAfterTyping.height, 56.0);
+
+    // Suffix cancel button should not exist (AC button is used instead)
+    expect(find.byIcon(Icons.cancel_rounded), findsNothing);
+
     final prefixRect = tester.getRect(find.text('0x'));
     final editableRect = tester.getRect(find.byType(EditableText).last);
     expect((prefixRect.bottom - editableRect.bottom).abs(), lessThan(2.0));
