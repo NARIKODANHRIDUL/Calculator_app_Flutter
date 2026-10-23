@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:math_expressions/math_expressions.dart';
+import 'package:calculator/main.dart';
 
 String calculateExpression(String rawInput) {
   if (rawInput.trim().isEmpty) return '';
@@ -76,30 +77,7 @@ String calculateExpression(String rawInput) {
     final ContextModel cm = ContextModel();
     final double eval = exp.evaluate(EvaluationType.REAL, cm);
 
-    if (eval.isNaN) return 'Keep it real';
-    if (eval == double.infinity) return 'Infinity';
-    if (eval == double.negativeInfinity) return '-Infinity';
-
-    if (eval == eval.roundToDouble() && eval.abs() < 1e14) {
-      return eval.toInt().toString();
-    }
-
-    String str = eval.toStringAsPrecision(12);
-    if (str.contains('e') || str.contains('E')) {
-      final parts = str.toLowerCase().split('e');
-      final mantissa = removeTrailingZeros(parts[0]);
-      return '${mantissa}e${parts[1]}';
-    }
-    str = removeTrailingZeros(str);
-
-    if (eval.abs() >= 1e12 || (eval.abs() > 0 && eval.abs() < 1e-7)) {
-      final expStr = eval.toStringAsExponential(6);
-      final parts = expStr.toLowerCase().split('e');
-      final mantissa = removeTrailingZeros(parts[0]);
-      return '${mantissa}e${parts[1]}';
-    }
-
-    return str;
+    return Home.formatResult(eval);
   } catch (_) {
     return 'Error';
   }
@@ -195,6 +173,59 @@ void main() {
       expect(val!.toRadixString(16).toUpperCase(), '123456789ABCDEF0123456789');
       expect(val.toRadixString(10), isNotEmpty);
       expect(val.toRadixString(2), isNotEmpty);
+    });
+  });
+
+  group('Result formatting and scientific notation e+ tests', () {
+    test('Numbers up to 9 digits stay formatted as Indian integers without e', () {
+      expect(Home.formatResult(0.0), '0');
+      expect(Home.formatResult(100.0), '100');
+      expect(Home.formatResult(1000.0), '1,000');
+      expect(Home.formatResult(10000.0), '10,000');
+      expect(Home.formatResult(100000000.0), '10,00,00,000');
+      expect(Home.formatResult(999999999.0), '99,99,99,999');
+    });
+
+    test('Reduced offset switches >= 1e9 to e+ notation', () {
+      expect(Home.formatResult(1000000000.0), '1e+9');
+      // Screenshot 1 case: 9,999 * 9,999 * 999 * 999 = 99,780,140,978,001 (14 digits)
+      final res1 = Home.formatResult(9999.0 * 9999 * 999 * 999);
+      expect(res1, '9.97801e+13');
+      expect(res1.length, lessThanOrEqualTo(12));
+
+      // Screenshot 2 case: 9,999 * 9,999 * 999 * 999 * 99 = 9,878,233,956,822,099 (16 digits)
+      final res2 = Home.formatResult(9999.0 * 9999 * 999 * 999 * 99);
+      expect(res2, '9.87823e+15');
+      expect(res2.length, lessThanOrEqualTo(12));
+    });
+
+    test('Scientific decimal precision reduces for large exponents and negative values', () {
+      // 1-digit exponent: up to 6 decimals
+      expect(Home.formatResult(1.23456789e9), '1.234568e+9');
+
+      // 2-digit exponent: reduced to 5 decimals
+      expect(Home.formatResult(1.23456789e25), '1.23457e+25');
+
+      // 3-digit exponent: reduced to 4 decimals
+      expect(Home.formatResult(1.23456789e120), '1.2346e+120');
+
+      // Negative sign: reduced precision by 1 to maintain max width <= 12 chars
+      final negRes = Home.formatResult(-(9999.0 * 9999 * 999 * 999 * 99));
+      expect(negRes, '-9.8782e+15');
+      expect(negRes.length, lessThanOrEqualTo(12));
+    });
+
+    test('Small numbers < 1e-6 use e- notation with reduced precision', () {
+      expect(Home.formatResult(1e-7), '1e-7');
+      expect(Home.formatResult(1.2345678e-7), '1.234568e-7');
+      expect(Home.formatResult(0.00001), '0.00001');
+    });
+
+    test('Decimals cap length within 12 characters', () {
+      expect(Home.formatResult(1.0 / 3.0), '0.33333333');
+      expect(Home.formatResult(12345.6789), '12,345.6789');
+      expect(Home.formatResult(123456.78912345), '1,23,456.79');
+      expect(Home.formatResult(12345678.9), '1,23,45,679');
     });
   });
 }

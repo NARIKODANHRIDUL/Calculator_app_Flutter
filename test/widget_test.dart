@@ -440,4 +440,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(scrollController.offset, maxScroll);
   });
+
+  testWidgets('Large multiplication output uses e+ with reduced decimal precision fitting screen',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    // Test case 1: 9,999 * 9,999 * 999 * 999
+    await tester.enterText(find.byType(TextField).first, Home.formatIndianExpression('9,999×9,999×999×999'));
+    await tester.pumpAndSettle();
+
+    // Verify preview answer contains e+ and reduced precision
+    expect(find.text('9.97801e+13'), findsOneWidget);
+
+    // Test case 2: 9,999 * 9,999 * 999 * 999 * 99
+    await tester.enterText(find.byType(TextField).first, Home.formatIndianExpression('9,999×9,999×999×999×99'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('9.87823e+15'), findsOneWidget);
+
+    // Press = to calculate
+    await tester.tap(find.text('='));
+    await tester.pumpAndSettle();
+
+    expect(find.text('9.87823e+15'), findsOneWidget);
+  });
 }

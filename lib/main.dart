@@ -68,6 +68,7 @@ class Home extends StatefulWidget {
   static String formatIndianExpression(String expr) => _HomeState.formatIndianExpression(expr);
   static int calculateFormattedCursor(String formatted, int targetRawIndex) => _HomeState.calculateFormattedCursor(formatted, targetRawIndex);
   static String formatIndianInteger(String intStr) => _HomeState.formatIndianInteger(intStr);
+  static String formatResult(double val) => _HomeState.formatResult(val);
 
   @override
   State<Home> createState() => _HomeState();
@@ -119,6 +120,16 @@ class _HomeState extends State<Home> {
 
   double resultSize = 40;
   double eqSize = 50;
+
+  double get dynamicResultSize {
+    final double baseSize = (isEqual > 0 && isEqual % 2 == 1) ? 50.0 : 40.0;
+    final int len = answer.length;
+    if (len <= 9) return baseSize;
+    if (len <= 14) {
+      return baseSize - ((len - 9) * 1.8);
+    }
+    return (baseSize - 9.0).clamp(24.0, baseSize);
+  }
 
   double get dynamicEqSize {
     if (isEqual > 0 && isEqual % 2 == 1) {
@@ -781,7 +792,7 @@ class _HomeState extends State<Home> {
                                                 : ((isEqual > 0 && isEqual % 2 == 1)
                                                     ? resultColor
                                                     : (isDark ? Colors.white60 : Colors.black45)),
-                                            fontSize: resultSize,
+                                            fontSize: dynamicResultSize,
                                             fontWeight: FontWeight.bold,
                                           ),
                                           textAlign: TextAlign.right,
@@ -1590,37 +1601,82 @@ class _HomeState extends State<Home> {
     }
   }
 
-  String formatResult(double val) {
-    if (val == val.roundToDouble() && val.abs() < 1e14) {
+  static String formatResult(double val) {
+    if (val.isNaN) return 'Keep it real';
+    if (val == double.infinity) return 'Infinity';
+    if (val == double.negativeInfinity) return '-Infinity';
+    if (val == 0.0 || val == -0.0) return '0';
+
+    final absVal = val.abs();
+
+    // If magnitude exceeds 1e9 (10+ digits) or is very small (< 1e-6), use scientific notation e
+    if (absVal >= 1e9 || absVal < 1e-6) {
+      return formatScientific(val);
+    }
+
+    // Integer handling (< 1e9)
+    if (val == val.roundToDouble()) {
       final intInt = val.toInt();
       final sign = intInt < 0 ? '-' : '';
       final absStr = intInt.abs().toString();
       return sign + formatIndianInteger(absStr);
     }
 
-    String str = val.toStringAsPrecision(12);
+    // Decimal number (< 1e9)
+    final sign = val < 0 ? '-' : '';
+    final intPart = absVal.floor();
+    final intFormatted = formatIndianInteger(intPart.toString());
 
-    if (str.contains('e') || str.contains('E')) {
-      final parts = str.toLowerCase().split('e');
-      final mantissa = removeTrailingZeros(parts[0]);
-      final formattedMantissa = formatIndianExpression(mantissa);
-      return '${formattedMantissa}e${parts[1]}';
+    // Calculate remaining character budget for decimals (target max width ~11 chars)
+    final int availableDecimals = 11 - sign.length - intFormatted.length - 1; // -1 for '.'
+    if (availableDecimals <= 0) {
+      final rounded = val.round();
+      final rSign = rounded < 0 ? '-' : '';
+      return rSign + formatIndianInteger(rounded.abs().toString());
     }
 
-    str = removeTrailingZeros(str);
+    final clampedPrecision = availableDecimals.clamp(1, 8);
+    String fixed = absVal.toStringAsFixed(clampedPrecision);
+    fixed = removeTrailingZeros(fixed);
 
-    if (val.abs() >= 1e12 || (val.abs() > 0 && val.abs() < 1e-7)) {
-      final expStr = val.toStringAsExponential(6);
-      final parts = expStr.toLowerCase().split('e');
-      final mantissa = removeTrailingZeros(parts[0]);
-      final formattedMantissa = formatIndianExpression(mantissa);
-      return '${formattedMantissa}e${parts[1]}';
+    final dotIdx = fixed.indexOf('.');
+    if (dotIdx == -1) {
+      return sign + formatIndianInteger(fixed);
     }
 
-    return formatIndianExpression(str);
+    final decPart = fixed.substring(dotIdx);
+    return sign + intFormatted + decPart;
   }
 
-  String removeTrailingZeros(String value) {
+  static String formatScientific(double val) {
+    // Get initial exponent to decide precision
+    final initialExpStr = val.toStringAsExponential();
+    final expParts = initialExpStr.toLowerCase().split('e');
+    final int expMag = expParts.length > 1 ? (int.tryParse(expParts[1])?.abs() ?? 0) : 0;
+
+    // Reduce decimal precision offset based on exponent magnitude:
+    // - 1-digit exponent (< 10): 6 decimals
+    // - 2-digit exponent (10..99): 5 decimals
+    // - 3-digit exponent (>= 100): 4 decimals
+    int precision = 5;
+    if (expMag >= 100) {
+      precision = 4;
+    } else if (expMag < 10) {
+      precision = 6;
+    }
+
+    // If negative, reduce precision by 1 to accommodate the minus sign within screen width
+    if (val < 0 && precision > 3) {
+      precision -= 1;
+    }
+
+    final expStr = val.toStringAsExponential(precision);
+    final parts = expStr.toLowerCase().split('e');
+    final mantissa = removeTrailingZeros(parts[0]);
+    return '${mantissa}e${parts[1]}';
+  }
+
+  static String removeTrailingZeros(String value) {
     if (!value.contains('.')) return value;
     int i = value.length - 1;
     while (i >= 0 && value[i] == '0') {
