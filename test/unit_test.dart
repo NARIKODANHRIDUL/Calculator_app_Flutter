@@ -177,17 +177,20 @@ void main() {
   });
 
   group('Result formatting and scientific notation e+ tests', () {
-    test('Numbers up to 9 digits stay formatted as Indian integers without e', () {
+    test('Numbers up to 12 digits stay formatted as Indian integers without e', () {
       expect(Home.formatResult(0.0), '0');
       expect(Home.formatResult(100.0), '100');
       expect(Home.formatResult(1000.0), '1,000');
       expect(Home.formatResult(10000.0), '10,000');
       expect(Home.formatResult(100000000.0), '10,00,00,000');
       expect(Home.formatResult(999999999.0), '99,99,99,999');
+      expect(Home.formatResult(1000000000.0), '1,00,00,00,000');
+      expect(Home.formatResult(10000000000.0), '10,00,00,00,000');
+      expect(Home.formatResult(100000000000.0), '1,00,00,00,00,000');
     });
 
-    test('Reduced offset switches >= 1e9 to e+ notation', () {
-      expect(Home.formatResult(1000000000.0), '1e+9');
+    test('Threshold switches >= 1e12 to e+ notation with reduced decimal precision', () {
+      expect(Home.formatResult(1000000000000.0), '1e+12');
       // Screenshot 1 case: 9,999 * 9,999 * 999 * 999 = 99,780,140,978,001 (14 digits)
       final res1 = Home.formatResult(9999.0 * 9999 * 999 * 999);
       expect(res1, '9.97801e+13');
@@ -200,10 +203,8 @@ void main() {
     });
 
     test('Scientific decimal precision reduces for large exponents and negative values', () {
-      // 1-digit exponent: up to 6 decimals
-      expect(Home.formatResult(1.23456789e9), '1.234568e+9');
-
       // 2-digit exponent: reduced to 5 decimals
+      expect(Home.formatResult(1.23456789e13), '1.23457e+13');
       expect(Home.formatResult(1.23456789e25), '1.23457e+25');
 
       // 3-digit exponent: reduced to 4 decimals
@@ -221,11 +222,11 @@ void main() {
       expect(Home.formatResult(0.00001), '0.00001');
     });
 
-    test('Decimals cap length within 12 characters', () {
+    test('Decimals cap length within 15 characters', () {
       expect(Home.formatResult(1.0 / 3.0), '0.33333333');
       expect(Home.formatResult(12345.6789), '12,345.6789');
-      expect(Home.formatResult(123456.78912345), '1,23,456.79');
-      expect(Home.formatResult(12345678.9), '1,23,45,679');
+      expect(Home.formatResult(123456.78912345), '1,23,456.789123');
+      expect(Home.formatResult(12345678.9), '1,23,45,678.9');
     });
   });
 }

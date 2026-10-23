@@ -124,11 +124,11 @@ class _HomeState extends State<Home> {
   double get dynamicResultSize {
     final double baseSize = (isEqual > 0 && isEqual % 2 == 1) ? 50.0 : 40.0;
     final int len = answer.length;
-    if (len <= 9) return baseSize;
-    if (len <= 14) {
-      return baseSize - ((len - 9) * 1.8);
+    if (len <= 11) return baseSize;
+    if (len <= 17) {
+      return baseSize - ((len - 11) * 1.6);
     }
-    return (baseSize - 9.0).clamp(24.0, baseSize);
+    return (baseSize - 9.6).clamp(24.0, baseSize);
   }
 
   double get dynamicEqSize {
@@ -1609,12 +1609,12 @@ class _HomeState extends State<Home> {
 
     final absVal = val.abs();
 
-    // If magnitude exceeds 1e9 (10+ digits) or is very small (< 1e-6), use scientific notation e
-    if (absVal >= 1e9 || absVal < 1e-6) {
+    // If magnitude exceeds 1e12 (13+ digits) or is very small (< 1e-6), use scientific notation e
+    if (absVal >= 1e12 || (absVal > 0 && absVal < 1e-6)) {
       return formatScientific(val);
     }
 
-    // Integer handling (< 1e9)
+    // Integer handling (< 1e12)
     if (val == val.roundToDouble()) {
       final intInt = val.toInt();
       final sign = intInt < 0 ? '-' : '';
@@ -1622,13 +1622,13 @@ class _HomeState extends State<Home> {
       return sign + formatIndianInteger(absStr);
     }
 
-    // Decimal number (< 1e9)
+    // Decimal number (< 1e12)
     final sign = val < 0 ? '-' : '';
     final intPart = absVal.floor();
     final intFormatted = formatIndianInteger(intPart.toString());
 
-    // Calculate remaining character budget for decimals (target max width ~11 chars)
-    final int availableDecimals = 11 - sign.length - intFormatted.length - 1; // -1 for '.'
+    // Calculate remaining character budget for decimals (target max width ~15 chars)
+    final int availableDecimals = 15 - sign.length - intFormatted.length - 1; // -1 for '.'
     if (availableDecimals <= 0) {
       final rounded = val.round();
       final rSign = rounded < 0 ? '-' : '';
