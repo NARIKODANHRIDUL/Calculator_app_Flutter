@@ -183,14 +183,21 @@ void main() {
 
     // Press down
     final gesture = await tester.startGesture(tester.getCenter(find.text('7')));
-    await tester.pump(const Duration(milliseconds: 280));
+    await tester.pump(const Duration(milliseconds: 800));
 
+    container = tester.widget<AnimatedContainer>(buttonFinder);
+    decoration = container.decoration as BoxDecoration;
+    expect(decoration.borderRadius, BorderRadius.circular(18));
+
+    // Hold down for 2 seconds - should stay in rounded square
+    await tester.pump(const Duration(seconds: 2));
     container = tester.widget<AnimatedContainer>(buttonFinder);
     decoration = container.decoration as BoxDecoration;
     expect(decoration.borderRadius, BorderRadius.circular(18));
 
     // Release
     await gesture.up();
+    await tester.pump(const Duration(milliseconds: 800));
     await tester.pumpAndSettle();
 
     container = tester.widget<AnimatedContainer>(buttonFinder);

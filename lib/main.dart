@@ -2765,50 +2765,56 @@ class _MorphingCalculatorButtonState
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) {
+    return Listener(
+      onPointerDown: (_) {
         HapticFeedback.lightImpact();
         setState(() {
           _isPressed = true;
         });
       },
-      onTapUp: (_) {
-        setState(() {
-          _isPressed = false;
-        });
+      onPointerUp: (_) {
+        if (_isPressed) {
+          setState(() {
+            _isPressed = false;
+          });
+        }
       },
-      onTapCancel: () {
-        setState(() {
-          _isPressed = false;
-        });
+      onPointerCancel: (_) {
+        if (_isPressed) {
+          setState(() {
+            _isPressed = false;
+          });
+        }
       },
-      onTap: () {
-        widget.onPressed?.call();
-      },
-      onLongPress: () {
-        HapticFeedback.mediumImpact();
-        widget.onLongPress?.call();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOutCubic,
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          borderRadius: BorderRadius.circular(_isPressed ? 18 : 300),
-          border: Border.fromBorderSide(widget.borderSide),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: _isPressed ? 0.35 : 0.18),
-              blurRadius: _isPressed ? 3 : widget.elevation * 2,
-              offset: Offset(0, _isPressed ? 1 : widget.elevation),
-            ),
-          ],
-        ),
-        child: Center(
-          child: widget.child,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          widget.onPressed?.call();
+        },
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          widget.onLongPress?.call();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOutCubic,
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            color: widget.backgroundColor,
+            borderRadius: BorderRadius.circular(_isPressed ? 18 : 300),
+            border: Border.fromBorderSide(widget.borderSide),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: _isPressed ? 0.35 : 0.18),
+                blurRadius: _isPressed ? 3 : widget.elevation * 2,
+                offset: Offset(0, _isPressed ? 1 : widget.elevation),
+              ),
+            ],
+          ),
+          child: Center(
+            child: widget.child,
+          ),
         ),
       ),
     );
